@@ -54,7 +54,7 @@ export const parseMarkdown = (markdown: string): string => {
     }
 
     return `<div class="my-8 text-center">
-      <img src="${imageSrc}" alt="${alt || "이미지"}" class="max-w-full h-auto mx-auto rounded-lg shadow-lg" loading="lazy" />
+      <img src="${imageSrc}" alt="${alt || "이미지"}" class="max-w-full h-auto mx-auto rounded-lg shadow-lg" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='none';" />
       ${alt ? `<p class="mt-2 text-sm text-slate-400 italic">${alt}</p>` : ""}
     </div>`
   })
@@ -375,9 +375,9 @@ function processParagraphs(html: string): string {
 
       const lines = trimmed.split("\n").filter((line) => line.trim())
       if (lines.length === 1) {
-        return `<p class="mb-4 text-white leading-relaxed text-base">${lines[0]}</p>`
+        return `<p class="mb-4 text-white leading-relaxed">${lines[0]}</p>`
       } else {
-        return `<p class="mb-4 text-white leading-relaxed text-base">${lines.join("<br>")}</p>`
+        return `<p class="mb-4 text-white leading-relaxed">${lines.join("<br>")}</p>`
       }
     })
     .join("\n")

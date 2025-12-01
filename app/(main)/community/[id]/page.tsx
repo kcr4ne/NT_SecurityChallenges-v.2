@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, ThumbsUp, MessageCircle, Eye, Share2, Flag, Edit, Trash2, Reply, MoreVertical, MoreHorizontal, X, Loader2, AlertCircle, LogIn, UserPlus, Calendar, Heart, Bookmark } from "lucide-react"
+import { ArrowLeft, ThumbsUp, MessageCircle, Eye, Share2, Flag, Edit, Trash2, Reply, MoreVertical, MoreHorizontal, X, Loader2, AlertCircle, LogIn, UserPlus, Calendar, Heart, Bookmark, User } from "lucide-react"
 import { doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, arrayRemove, Timestamp, increment, orderBy } from "firebase/firestore"
 import { db } from "@/lib/firebase-config"
 import Link from "next/link"
@@ -542,7 +542,7 @@ export default function CommunityPostPage({ params }: { params: Promise<{ id: st
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 md:px-6 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* 뒤로가기 버튼 */}
           <Button
             variant="ghost"
@@ -609,9 +609,11 @@ export default function CommunityPostPage({ params }: { params: Promise<{ id: st
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={post.authorAvatar || "/placeholder.svg"} />
-                    <AvatarFallback>{post.authorName.charAt(0)}</AvatarFallback>
+                  <Avatar className="h-10 w-10 border border-gray-700">
+                    <AvatarImage src={post.authorAvatar || ""} />
+                    <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white">
+                      <User className="h-5 w-5" />
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <Link href={`/user/${post.authorId}`}>
