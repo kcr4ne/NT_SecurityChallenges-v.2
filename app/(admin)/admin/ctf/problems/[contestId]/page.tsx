@@ -1,7 +1,54 @@
 "use client"
 
 import { useState, useEffect, use } from "react"
-// ... imports ...
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/hooks/use-toast"
+import { db } from "@/lib/firebase-config"
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore"
+import { Loader2, ArrowLeft, Plus, Edit, Trash, AlertCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Navbar } from "@/components/layout/navbar"
+import { Footer } from "@/components/layout/footer"
+
+interface Problem {
+  id: string
+  title: string
+  category: string
+  difficulty: string
+  points: number
+  solvedCount: number
+}
 
 export default function CTFProblemsPage({ params }: { params: Promise<{ contestId: string }> }) {
   const { contestId } = use(params)

@@ -243,7 +243,7 @@ export default function ProfilePage() {
     }
 
     // 관리자인지 확인
-    const isAdmin = userProfile?.role === "admin" || isSuperAdmin(userProfile)
+    const isAdmin = userProfile?.role === "admin" || isSuperAdmin(userProfile || undefined)
 
     // 일반 사용자는 [관리자], [ADMIN], [운영자] 등의 태그 사용 불가
     if (!isAdmin) {
@@ -263,7 +263,7 @@ export default function ProfilePage() {
   }
 
   const addAdminTagIfNeeded = (name: string) => {
-    const isAdmin = userProfile?.role === "admin" || isSuperAdmin(userProfile)
+    const isAdmin = userProfile?.role === "admin" || isSuperAdmin(userProfile || undefined)
 
     if (isAdmin) {
       // 이미 관리자 태그가 있는지 확인
@@ -279,89 +279,111 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    const banners = [
+    const banners: ProfileBanner[] = [
       {
         id: "default",
         name: "기본 그라데이션",
         description: "사이버 블루 그라데이션",
         imageUrl: "",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "cyber-neon",
         name: "사이버 네온",
         description: "네온 사이버펑크 스타일",
         imageUrl: "/cyberpunk-neon-matrix.png",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "matrix-code",
         name: "매트릭스 코드",
         description: "디지털 매트릭스 코드 배경",
         imageUrl: "/matrix-digital-rain.png",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "hacker-terminal",
         name: "해커 터미널",
         description: "다크 터미널 인터페이스",
         imageUrl: "/placeholder-rvnsp.png",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "circuit-board",
         name: "회로 기판",
         description: "전자 회로 패턴",
         imageUrl: "/placeholder-o9cge.png",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "data-stream",
         name: "데이터 스트림",
         description: "흐르는 데이터 시각화",
         imageUrl: "/blue-data-stream.png",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "neural-network",
         name: "신경망",
         description: "AI 신경망 구조",
         imageUrl: "/neural-network-ai-purple.png",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "quantum-field",
         name: "양자 필드",
         description: "양자 컴퓨팅 시각화",
         imageUrl: "/quantum-computing-particles.png",
-        adminOnly: false,
+        isAdminOnly: false,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "admin-crown",
         name: "관리자 크라운",
         description: "황금 크라운과 권위",
         imageUrl: "/golden-crown-authority.png",
-        adminOnly: true,
+        isAdminOnly: true,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "admin-shield",
         name: "관리자 실드",
         description: "보안 방패 엠블럼",
         imageUrl: "/placeholder-lwnku.png",
-        adminOnly: true,
+        isAdminOnly: true,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
       {
         id: "admin-matrix",
         name: "관리자 매트릭스",
         description: "특별한 황금 매트릭스",
         imageUrl: "/golden-matrix-admin.png",
-        adminOnly: true,
+        isAdminOnly: true,
+        createdAt: Timestamp.now(),
+        createdBy: "system",
       },
     ]
 
     // 관리자가 아닌 경우 관리자 전용 배너 필터링
-    const isAdmin = userProfile?.role === "admin" || isSuperAdmin(userProfile)
-    const filteredBanners = isAdmin ? banners : banners.filter((banner) => !banner.adminOnly)
+    const isAdmin = userProfile?.role === "admin" || isSuperAdmin(userProfile || undefined)
+    const filteredBanners = isAdmin ? banners : banners.filter((banner) => !banner.isAdminOnly)
 
     setAvailableBanners(filteredBanners)
   }, [userProfile])
@@ -528,6 +550,7 @@ export default function ProfilePage() {
       department: newAffiliation.department,
       startDate: newAffiliation.startDate,
       endDate: newAffiliation.endDate,
+      isVerified: false,
     }
 
     const updatedAffiliations = [...affiliations, newAff]
@@ -560,7 +583,7 @@ export default function ProfilePage() {
     setEditedAffiliation({
       name: affiliation.name,
       department: affiliation.department || "",
-      startDate: affiliation.startDate,
+      startDate: affiliation.startDate || "",
       endDate: affiliation.endDate || "",
     })
   }
@@ -1688,6 +1711,7 @@ export default function ProfilePage() {
       {/* 팔로우 모달 */}
       {showFollowModal && (
         <FollowListModal
+          username={userProfile?.username || ""}
           isOpen={showFollowModal}
           onClose={() => setShowFollowModal(false)}
           userId={user.uid}

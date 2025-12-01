@@ -16,13 +16,14 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
-  type Timestamp,
+  getDocs,
   collection,
   query,
   where,
-  getDocs,
+  Timestamp,
 } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
+import type { UserProfile } from "@/lib/user-types"
 
 // 사용자 타입 정의
 type User = FirebaseUser | null
@@ -53,27 +54,11 @@ type AuthContextType = {
   sendVerificationEmail: () => Promise<{ success: boolean; error?: string }>
   isEmailVerified: boolean
   createTemporaryAccount: () => Promise<void> // 일회용 계정 생성 함수 추가
+  refreshUserProfile: () => Promise<void>
 }
 
 // 사용자 프로필 타입 정의
-type UserProfile = {
-  uid: string
-  email: string
-  username: string
-  bio?: string
-  location?: string
-  website?: string
-  photoURL?: string
-  createdAt: Timestamp | string
-  updatedAt?: Timestamp
-  points: number
-  solvedChallenges: string[]
-  role: string
-  lastLogin?: Timestamp
-  title?: string
-  emailVerified: boolean
-  isTemporary?: boolean // 일회용 계정 여부 추가
-}
+
 
 // 입력 검증 함수
 const validateEmail = (email: string): boolean => {
@@ -185,6 +170,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               createdAt: serverTimestamp() as Timestamp,
               updatedAt: serverTimestamp() as Timestamp,
               points: 0,
+              wargamePoints: 0,
+              ctfPoints: 0,
               solvedChallenges: [],
               role: isAdmin ? "admin" : "user",
               lastLogin: serverTimestamp() as Timestamp,
@@ -211,8 +198,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             location: "",
             website: "",
             photoURL: user.photoURL || "",
-            createdAt: new Date().toISOString(),
+            createdAt: Timestamp.now(),
             points: 0,
+            wargamePoints: 0,
+            ctfPoints: 0,
             solvedChallenges: [],
             role: user.email === "mistarcodm@gmail.com" ? "admin" : "user",
             title: user.email === "mistarcodm@gmail.com" ? "관리자" : undefined,
@@ -308,6 +297,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         createdAt: serverTimestamp() as Timestamp,
         updatedAt: serverTimestamp() as Timestamp,
         points: 0,
+        wargamePoints: 0,
+        ctfPoints: 0,
         solvedChallenges: [],
         role: "user",
         lastLogin: serverTimestamp() as Timestamp,
@@ -498,6 +489,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const refreshUserProfile = async () => {
+    if (!user) return
+    try {
+      const userDocRef = doc(db, "users", user.uid)
+      const userDocSnap = await getDoc(userDocRef)
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data() as UserProfile
+        setUserProfile(userData)
+      }
+    } catch (error) {
+      console.error("Error refreshing user profile:", error)
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -511,6 +516,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sendVerificationEmail,
     isEmailVerified,
     createTemporaryAccount,
+    refreshUserProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

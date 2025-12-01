@@ -1,5 +1,5 @@
 import { getFirestore, doc, updateDoc, getDoc, collection, getDocs, query, where, Timestamp } from "firebase/firestore"
-import type { UserProfile, ProfileFrame, Achievement } from "./user-types"
+import { UserProfile, ProfileBanner, ProfileFrame, ProfileTheme, ProfileEffect, Achievement, Title, ProfileStats } from "@/lib/user-types"
 
 // 프로필 프레임 관리
 export class ProfileFrameManager {

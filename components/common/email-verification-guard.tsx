@@ -8,7 +8,7 @@ import { Mail, AlertCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/lib/auth-context"
-import { sendVerificationEmail } from "@/utils/email-verification"
+import { sendLoginVerificationEmail } from "@/utils/email-verification"
 
 interface EmailVerificationGuardProps {
   children: React.ReactNode
@@ -37,7 +37,11 @@ export function EmailVerificationGuard({ children, requireVerification = false }
     setMessage("")
 
     try {
-      const result = await sendVerificationEmail(user)
+      if (!user.email) {
+        setMessage("이메일 주소가 없습니다.")
+        return
+      }
+      const result = await sendLoginVerificationEmail(user.email)
 
       if (result.success) {
         setMessage("인증 메일이 재발송되었습니다. 이메일을 확인해주세요.")

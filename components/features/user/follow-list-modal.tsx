@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -30,21 +30,7 @@ export function FollowListModal({ isOpen, onClose, userId, username, type }: Fol
   const [isLoading, setIsLoading] = useState(false)
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set())
 
-  // 팔로우 목록 불러오기
-  useEffect(() => {
-    if (isOpen && userId) {
-      fetchFollowList()
-    }
-  }, [isOpen, userId, type])
-
-  // 현재 사용자가 팔로우하는 사용자들 확인
-  useEffect(() => {
-    if (user && isOpen) {
-      checkFollowingStatus()
-    }
-  }, [user, isOpen, followList])
-
-  const fetchFollowList = async () => {
+  const fetchFollowList = useCallback(async () => {
     setIsLoading(true)
     try {
       let list: FollowData[] = []
@@ -70,9 +56,9 @@ export function FollowListModal({ isOpen, onClose, userId, username, type }: Fol
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [userId, type, toast])
 
-  const checkFollowingStatus = async () => {
+  const checkFollowingStatus = useCallback(async () => {
     if (!user) return
 
     const followingSet = new Set<string>()
@@ -85,7 +71,21 @@ export function FollowListModal({ isOpen, onClose, userId, username, type }: Fol
       }
     }
     setFollowingUsers(followingSet)
-  }
+  }, [user, followList])
+
+  // 팔로우 목록 불러오기
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchFollowList()
+    }
+  }, [isOpen, userId, fetchFollowList])
+
+  // 현재 사용자가 팔로우하는 사용자들 확인
+  useEffect(() => {
+    if (user && isOpen) {
+      checkFollowingStatus()
+    }
+  }, [user, isOpen, checkFollowingStatus])
 
   const handleFollow = async (targetUserId: string) => {
     if (!user) return

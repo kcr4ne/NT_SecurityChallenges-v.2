@@ -1,5 +1,5 @@
 import { getFirestore, doc, updateDoc, Timestamp, getDoc, collection, getDocs } from "firebase/firestore"
-import type { UserProfile, Affiliation, Sanction } from "./user-types"
+import { UserProfile, UserStatus, Sanction, Affiliation } from "@/lib/user-types"
 import { sendNotificationToUser } from "./notification-utils"
 
 // 관리자 권한 확인 함수
@@ -345,7 +345,7 @@ export function checkUserAccess(userProfile?: UserProfile | null): {
     return { canAccess: false, reason: "로그인이 필요합니다." }
   }
 
-  if (userProfile.status === "banned") {
+  if (userProfile.status?.status === "banned") {
     const banSanction = userProfile.sanctions?.find((s) => s.isActive && s.type === "ban")
     return {
       canAccess: false,
@@ -354,7 +354,7 @@ export function checkUserAccess(userProfile?: UserProfile | null): {
     }
   }
 
-  if (userProfile.status === "suspended") {
+  if (userProfile.status?.status === "suspended") {
     const suspensionSanction = userProfile.sanctions?.find((s) => s.isActive && s.type === "suspension")
     return {
       canAccess: false,

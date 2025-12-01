@@ -18,8 +18,8 @@ export async function uploadFile(
     }
   }
 
-  if (!(file instanceof File) && !(file instanceof Blob)) {
-    console.error("Invalid file type:", typeof file, file?.constructor?.name)
+  if (!((file as any) instanceof File) && !((file as any) instanceof Blob)) {
+    console.error("Invalid file type:", typeof file, (file as any)?.constructor?.name)
     return {
       success: false,
       error: "Invalid file type",

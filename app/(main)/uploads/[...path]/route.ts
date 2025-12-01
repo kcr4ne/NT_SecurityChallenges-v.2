@@ -74,7 +74,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     console.log("✅ File served successfully")
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(fileBuffer as any, {
       status: 200,
       headers: headers,
     })

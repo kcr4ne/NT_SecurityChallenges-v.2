@@ -102,7 +102,7 @@ export function UserDetailView({ user, onClose }: UserDetailViewProps) {
               <CardTitle>{user.username}</CardTitle>
               <CardDescription>{user.email}</CardDescription>
               <div className="flex items-center gap-2 mt-1">
-                {renderStatusBadge(user.status)}
+                {renderStatusBadge(user.status as unknown as string)}
                 {user.role === "admin" && <Badge className="bg-blue-500 text-white">관리자</Badge>}
                 {user.title && <Badge variant="outline">{user.title}</Badge>}
               </div>

@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { UserPlus, UserMinus, Loader2 } from "lucide-react"
 import { followSystem } from "@/utils/follow-system"
@@ -28,16 +28,7 @@ export function FollowButton({
   const [isLoading, setIsLoading] = useState(false)
   const [isCheckingStatus, setIsCheckingStatus] = useState(true)
 
-  // 팔로우 상태 확인
-  useEffect(() => {
-    if (user && targetUserId && user.uid !== targetUserId) {
-      checkFollowStatus()
-    } else {
-      setIsCheckingStatus(false)
-    }
-  }, [user, targetUserId])
-
-  const checkFollowStatus = async () => {
+  const checkFollowStatus = useCallback(async () => {
     if (!user) return
 
     try {
@@ -48,7 +39,16 @@ export function FollowButton({
     } finally {
       setIsCheckingStatus(false)
     }
-  }
+  }, [user, targetUserId])
+
+  // 팔로우 상태 확인
+  useEffect(() => {
+    if (user && targetUserId && user.uid !== targetUserId) {
+      checkFollowStatus()
+    } else {
+      setIsCheckingStatus(false)
+    }
+  }, [user, targetUserId, checkFollowStatus])
 
   const handleFollow = async () => {
     if (!user) {

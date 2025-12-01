@@ -3,9 +3,9 @@
 import type { ReactNode } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/lib/auth-context"
-import { SearchProvider } from "@/components/search-provider"
+// import { SearchProvider } from "@/components/search-provider"
 import { ThemeProvider } from "@/components/common/theme-provider"
-import { NotificationListener } from "@/components/notification-listener"
+// import { NotificationListener } from "@/components/notification-listener"
 import { Suspense } from "react"
 
 interface RootLayoutProps {
@@ -23,10 +23,10 @@ export default function ClientLayout({ children }: RootLayoutProps) {
             </div>
           }
         >
-          <SearchProvider>
-            <NotificationListener />
-            {children}
-          </SearchProvider>
+          {/* <SearchProvider> */}
+          {/* <NotificationListener /> */}
+          {children}
+          {/* </SearchProvider> */}
         </Suspense>
       </ThemeProvider>
       <Toaster />

@@ -22,7 +22,7 @@ const RestrictedAccess: React.FC<RestrictedAccessProps> = ({ children }) => {
           <CardContent className="p-6 text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-red-700 mb-2">접근 제한</h3>
-            <p className="text-red-600">{accessCheck.reason}</p>
+            <p className="text-red-600">{(accessCheck as any).reason}</p>
             <Button variant="outline" className="mt-4" onClick={() => router.push("/account/restricted")}>
               자세히 보기
             </Button>

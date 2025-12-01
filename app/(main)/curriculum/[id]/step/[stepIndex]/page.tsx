@@ -87,6 +87,9 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
 
       const steps = curriculumData.steps || []
       const curriculum: Curriculum = {
+        categories: [], // Default
+        estimatedDuration: 0, // Default
+        isVisible: true, // Default
         id: curriculumSnap.id,
         title: curriculumData.title || "",
         description: curriculumData.description || "",
@@ -135,11 +138,12 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
             setUserProgress({
               userId: progressData.userId,
               curriculumId: progressData.curriculumId,
-              currentStep: progressData.currentStep || 0,
+              // currentStep: progressData.currentStep || 0,
               completedSteps: progressData.completedSteps || [],
-              lastAccessedAt: progressData.lastAccessedAt,
+              // lastAccessedAt: progressData.lastAccessedAt,
               startedAt: progressData.startedAt,
               completedAt: progressData.completedAt,
+              progress: progressData.progress || 0,
             })
           } else {
             // 진행 상황이 없으면 새로 생성
@@ -156,7 +160,7 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
             await setDoc(progressRef, newProgress)
             setUserProgress({
               ...newProgress,
-              lastAccessedAt: { toDate: () => now },
+              progress: (newProgress as any).progress || 0,
               startedAt: { toDate: () => now },
             })
           }

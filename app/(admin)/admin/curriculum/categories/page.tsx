@@ -22,6 +22,7 @@ import {
   updateDoc,
   addDoc,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore"
 import { db } from "@/lib/firebase-config"
 import type { CurriculumCategory } from "@/lib/curriculum-types"
@@ -148,7 +149,7 @@ export default function AdminCurriculumCategoriesPage() {
       }))
 
       // Firestore 업데이트
-      const batch = db.batch()
+      const batch = writeBatch(db)
       reorderedCategories.forEach((category) => {
         const categoryRef = doc(db, "curriculum_categories", category.id)
         batch.update(categoryRef, { order: category.order })
@@ -204,6 +205,9 @@ export default function AdminCurriculumCategoriesPage() {
           ...newCategory,
           createdAt: { toDate: () => new Date() } as any,
           updatedAt: { toDate: () => new Date() } as any,
+          title: newCategory.name,
+          slug: newCategory.name.toLowerCase().replace(/\s+/g, "-"),
+          isVisible: true,
         },
       ])
 

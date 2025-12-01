@@ -55,7 +55,7 @@ export function NotificationDebug() {
     try {
       const result = await sendNotificationToUser(
         user.uid,
-        "info",
+        "info" as any,
         "테스트 알림",
         "이것은 테스트 알림입니다. 알림 시스템이 정상적으로 작동하는지 확인합니다.",
         "/mypage",

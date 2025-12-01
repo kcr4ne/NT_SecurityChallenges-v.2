@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
-import { collection, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore"
+import { collection, doc, getDoc, addDoc, updateDoc, serverTimestamp, increment } from "firebase/firestore"
 import { db } from "@/lib/firebase-config"
 import MarkdownEditor from "@/components/editor/markdown-editor"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -162,7 +162,7 @@ export default function CreateCTFProblemPage({ params }: { params: Promise<{ con
 
       // 문제 데이터 준비
       const problemData = {
-        contestId: params.contestId,
+        contestId: (await params).contestId,
         title: title.trim(),
         description: description.trim(),
         category,
@@ -355,8 +355,9 @@ export default function CreateCTFProblemPage({ params }: { params: Promise<{ con
                       <Label htmlFor="files">첨부 파일</Label>
                       <FirebaseFileUploader
                         folder={`ctf/${contestId}`}
-                        onUpload={(url) => {
-                          setFiles((prev) => (prev ? prev + "\n" + url : url))
+                        onFilesChange={(uploadedFiles) => {
+                          const urls = uploadedFiles.map((f) => f.url).join("\n")
+                          setFiles(urls)
                         }}
                         disabled={isSubmitting}
                       />
@@ -411,7 +412,7 @@ export default function CreateCTFProblemPage({ params }: { params: Promise<{ con
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push(`/admin/ctf/problems/${params.contestId}`)}
+                onClick={() => router.push(`/admin/ctf/problems/${contestId}`)}
                 disabled={isSubmitting}
               >
                 취소

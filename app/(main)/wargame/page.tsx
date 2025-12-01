@@ -342,7 +342,7 @@ export default function WargamePage() {
         querySnapshot.forEach((doc) => {
           const data = doc.data() as WargameChallenge
           challengesData.push({
-            id: doc.id,
+            // id: doc.id,
             ...data,
             solvedBy: data.solvedBy || [],
             solvedCount: data.solvedCount || 0,
@@ -397,11 +397,11 @@ export default function WargamePage() {
     if (user) {
       if (solvedFilter === "solved") {
         result = result.filter(
-          (challenge) => Array.isArray(challenge.solvedBy) && challenge.solvedBy.includes(user.uid),
+          (challenge) => Array.isArray(challenge.solvedBy) && challenge.solvedBy.some((s: any) => (typeof s === 'string' ? s === user.uid : s.userId === user.uid)),
         )
       } else if (solvedFilter === "unsolved") {
         result = result.filter(
-          (challenge) => !Array.isArray(challenge.solvedBy) || !challenge.solvedBy.includes(user.uid),
+          (challenge) => !Array.isArray(challenge.solvedBy) || !challenge.solvedBy.some((s: any) => (typeof s === 'string' ? s === user.uid : s.userId === user.uid)),
         )
       }
     }
@@ -898,11 +898,10 @@ export default function WargamePage() {
                           variant={categoryFilter === category.key ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCategoryFilter(category.key)}
-                          className={`${
-                            categoryFilter === category.key
-                              ? `bg-gradient-to-r ${category.color} text-white border-transparent shadow-lg hover:shadow-xl`
-                              : "bg-gray-800/50 border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500"
-                          } transition-all duration-300 backdrop-blur-sm`}
+                          className={`${categoryFilter === category.key
+                            ? `bg-gradient-to-r ${category.color} text-white border-transparent shadow-lg hover:shadow-xl`
+                            : "bg-gray-800/50 border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500"
+                            } transition-all duration-300 backdrop-blur-sm`}
                         >
                           {category.icon}
                           <span className="ml-2">{category.label}</span>
@@ -931,11 +930,10 @@ export default function WargamePage() {
                           variant={levelFilter === 0 ? "default" : "outline"}
                           size="sm"
                           onClick={() => setLevelFilter(0)}
-                          className={`${
-                            levelFilter === 0
-                              ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg"
-                              : "bg-gray-800/50 border-gray-600 text-gray-300 hover:bg-gray-700/50"
-                          } transition-all duration-300`}
+                          className={`${levelFilter === 0
+                            ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg"
+                            : "bg-gray-800/50 border-gray-600 text-gray-300 hover:bg-gray-700/50"
+                            } transition-all duration-300`}
                         >
                           전체
                         </Button>
@@ -951,11 +949,10 @@ export default function WargamePage() {
                             variant={levelFilter === level ? "default" : "outline"}
                             size="sm"
                             onClick={() => setLevelFilter(level)}
-                            className={`w-10 h-10 p-0 font-bold transition-all duration-300 ${
-                              levelFilter === level
-                                ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25"
-                                : `${getLevelColor(level)} border-2 hover:scale-110 hover:shadow-lg`
-                            }`}
+                            className={`w-10 h-10 p-0 font-bold transition-all duration-300 ${levelFilter === level
+                              ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25"
+                              : `${getLevelColor(level)} border-2 hover:scale-110 hover:shadow-lg`
+                              }`}
                           >
                             {level}
                           </Button>
@@ -997,11 +994,10 @@ export default function WargamePage() {
                             size="sm"
                             onClick={() => setSolvedFilter(filter.key)}
                             disabled={!user && filter.key !== "all"}
-                            className={`${
-                              solvedFilter === filter.key
-                                ? `bg-gradient-to-r ${filter.color} text-white shadow-lg hover:shadow-xl`
-                                : "bg-gray-800/50 border-gray-600 text-gray-300 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            } transition-all duration-300`}
+                            className={`${solvedFilter === filter.key
+                              ? `bg-gradient-to-r ${filter.color} text-white shadow-lg hover:shadow-xl`
+                              : "bg-gray-800/50 border-gray-600 text-gray-300 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              } transition-all duration-300`}
                           >
                             {filter.label}
                           </Button>
@@ -1128,7 +1124,7 @@ export default function WargamePage() {
                                     </div>
                                     {user &&
                                       Array.isArray(challenge.solvedBy) &&
-                                      challenge.solvedBy.includes(user.uid) && (
+                                      challenge.solvedBy.some((s: any) => (typeof s === 'string' ? s === user.uid : s.userId === user.uid)) && (
                                         <motion.div
                                           initial={{ scale: 0, rotate: -180 }}
                                           animate={{ scale: 1, rotate: 0 }}
@@ -1455,22 +1451,20 @@ export default function WargamePage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         whileHover={{ x: 5, scale: 1.02 }}
-                        className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
-                          index < 3
-                            ? "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 shadow-lg shadow-amber-500/10"
-                            : "hover:bg-gray-800/50"
-                        }`}
+                        className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${index < 3
+                          ? "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 shadow-lg shadow-amber-500/10"
+                          : "hover:bg-gray-800/50"
+                          }`}
                       >
                         <motion.div
-                          className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded transition-all duration-300 ${
-                            index === 0
-                              ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-lg shadow-amber-500/25"
-                              : index === 1
-                                ? "bg-gradient-to-r from-gray-400 to-gray-500 text-black shadow-lg shadow-gray-400/25"
-                                : index === 2
-                                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
-                                  : "bg-gradient-to-r from-gray-700 to-gray-800 text-gray-300"
-                          }`}
+                          className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded transition-all duration-300 ${index === 0
+                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-lg shadow-amber-500/25"
+                            : index === 1
+                              ? "bg-gradient-to-r from-gray-400 to-gray-500 text-black shadow-lg shadow-gray-400/25"
+                              : index === 2
+                                ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                                : "bg-gradient-to-r from-gray-700 to-gray-800 text-gray-300"
+                            }`}
                           whileHover={{ scale: 1.1, rotate: 5 }}
                           transition={{ duration: 0.2 }}
                         >

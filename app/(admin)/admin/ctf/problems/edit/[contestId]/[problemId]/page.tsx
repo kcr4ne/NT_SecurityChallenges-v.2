@@ -133,7 +133,7 @@ export default function EditCTFProblemPage({ params }: { params: Promise<{ conte
       }
     }
 
-    checkPermissionAndFetchData()
+    fetchProblemInfo()
   }, [user, userProfile, contestId, problemId, router, toast])
 
   // 파일 URL 추가 핸들러
@@ -156,7 +156,7 @@ export default function EditCTFProblemPage({ params }: { params: Promise<{ conte
 
     try {
       for (const file of files) {
-        const fileName = `ctf / ${params.contestId} /${params.problemId}/${Date.now()}_${file.name} `
+        const fileName = `ctf/${contestId}/${problemId}/${Date.now()}_${file.name}`
         const storageRef = ref(storage, fileName)
 
         await uploadBytes(storageRef, file)
@@ -444,7 +444,7 @@ export default function EditCTFProblemPage({ params }: { params: Promise<{ conte
                         isUploading={isUploading}
                         maxFiles={5}
                         maxSize={50} // MB 단위
-                        accept=".zip,.rar,.7z,.tar,.gz,.pdf,.txt,.png,.jpg,.jpeg"
+                        acceptedFileTypes=".zip,.rar,.7z,.tar,.gz,.pdf,.txt,.png,.jpg,.jpeg"
                       />
 
                       <div className="flex items-center gap-2 mt-2">

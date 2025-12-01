@@ -143,7 +143,7 @@ export function UserDetailModal({ user, open, onOpenChange }: UserDetailModalPro
                     </div>
                     <div>
                       <Label className="text-sm text-gray-500">상태</Label>
-                      <div className="mt-1">{renderStatusBadge(user.status)}</div>
+                      <div className="mt-1">{renderStatusBadge(user.status as unknown as string)}</div>
                     </div>
                   </div>
 

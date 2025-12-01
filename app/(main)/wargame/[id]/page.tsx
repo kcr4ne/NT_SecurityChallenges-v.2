@@ -212,7 +212,7 @@ type DifficultyVote = {
 
 export default function ChallengePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { user, userProfile, updateUserProfile } = useAuth()
+  const { user, userProfile, updateUserProfile, refreshUserProfile } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const [challenge, setChallenge] = useState<WargameChallenge | null>(null)
@@ -420,7 +420,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
         const challengeSnap = await getDoc(challengeRef)
 
         if (challengeSnap.exists()) {
-          const challengeData = challengeSnap.data() as WargameChallenge
+          const challengeData = challengeSnap.data() as any
           setChallenge({
             id: challengeSnap.id,
             ...challengeData,
@@ -484,7 +484,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
             const solversData: Solver[] = []
             let firstBlood: Solver | null = null
 
-            snapshot.forEach((doc, index) => {
+            snapshot.docs.forEach((doc, index) => {
               const data = doc.data()
               const isFirst = index === 0 // 첫 번째가 First Blood
 
@@ -537,7 +537,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
         const solversData: Solver[] = []
         let firstBlood: Solver | null = null
 
-        querySnapshot.forEach((doc, index) => {
+        querySnapshot.docs.forEach((doc, index) => {
           const data = doc.data()
           const isFirst = index === 0
 
@@ -756,7 +756,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
         const updatedChallenge = {
           ...challenge,
           solvedCount: challenge.solvedCount + 1,
-          solvedBy: Array.isArray(challenge.solvedBy) ? [...challenge.solvedBy, user.uid] : [user.uid],
+          solvedBy: Array.isArray(challenge.solvedBy) ? [...challenge.solvedBy, user.uid] : [user.uid] as any,
         }
         setChallenge(updatedChallenge)
 
@@ -772,14 +772,9 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
 
         setFlagInput("")
 
-        if (userProfile && typeof updateUserProfile === "function") {
+        if (userProfile && typeof refreshUserProfile === "function") {
           try {
-            const updatedProfile = {
-              ...userProfile,
-              points: (userProfile.points || 0) + result.points,
-              wargamePoints: (userProfile.wargamePoints || 0) + result.points,
-            }
-            updateUserProfile(updatedProfile)
+            await refreshUserProfile()
           } catch (profileError) {
             console.error("프로필 업데이트 오류:", profileError)
           }

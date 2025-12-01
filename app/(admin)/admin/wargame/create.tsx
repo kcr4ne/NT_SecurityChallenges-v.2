@@ -172,7 +172,7 @@ export default function CreateChallengePage() {
         points: Number(points) || 100, // 점수가 없거나 0이면 기본값 100 사용
         port: port ? Number(port) : null,
         flag,
-        files: uploadedFiles.map((file) => file.url),
+        files: uploadedFiles,
         author: userProfile?.username || user?.displayName || "관리자",
         authorId: user?.uid,
         createdAt: serverTimestamp(),

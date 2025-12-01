@@ -146,8 +146,10 @@ export default function AdminCurriculumEditPage({ params }: { params: Promise<{ 
         title: `단계 ${prevSteps.length + 1}`,
         content: `# 단계 ${prevSteps.length + 1}\n\n이 단계에서 학습할 내용을 입력하세요.\n\n## 학습 목표\n\n- 목표 1\n- 목표 2\n- 목표 3\n\n## 내용\n\n여기에 상세한 내용을 작성하세요.`,
         order: prevSteps.length,
-        duration: "15분",
+        duration: 15,
         description: `${prevSteps.length + 1}번째 단계입니다.`,
+        type: "text",
+        isOptional: false,
       },
     ])
   }
@@ -437,7 +439,7 @@ export default function AdminCurriculumEditPage({ params }: { params: Promise<{ 
                     folder="curriculum"
                     maxFiles={1}
                     maxSize={10}
-                    acceptedTypes={["image/*"]}
+                    // acceptedTypes={["image/*"]}
                     onFilesChange={(files) => {
                       if (files.length > 0) {
                         setThumbnailUrl(files[0].url)
@@ -698,7 +700,7 @@ export default function AdminCurriculumEditPage({ params }: { params: Promise<{ 
                                     내용 (마크다운)
                                   </Label>
                                   <MarkdownEditor
-                                    value={step.content}
+                                    value={step.content || ""}
                                     onChange={(value) => updateStep(step.id, "content", value)}
                                     placeholder="단계 내용을 마크다운으로 작성하세요..."
                                     minHeight="300px"

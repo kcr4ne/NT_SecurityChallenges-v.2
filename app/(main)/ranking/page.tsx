@@ -728,7 +728,7 @@ export default function RankingPage() {
             {isLoading ? (
               <motion.div className="grid gap-6 md:grid-cols-3" variants={container} initial="hidden" animate="show">
                 {[...Array(3)].map((_, i) => (
-                  <motion.div key={i} variants={item}>
+                  <motion.div key={i} variants={item as any}>
                     <SkeletonCard />
                   </motion.div>
                 ))}

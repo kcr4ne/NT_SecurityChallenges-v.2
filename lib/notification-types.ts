@@ -11,6 +11,8 @@ export type NotificationType =
   | "level_up"
   | "tier_up"
   | "admin_action"
+  | "season_start"
+  | "season_end"
 
 export interface Notification {
   id: string

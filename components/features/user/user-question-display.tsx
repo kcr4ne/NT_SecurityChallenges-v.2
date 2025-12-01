@@ -230,7 +230,7 @@ export function UserQuestionDisplay({ question, onQuestionUpdate }: UserQuestion
           }
           break
         case "fill_in_blank":
-          isCorrect = userAnswer?.toLowerCase().trim() === question.correctAnswer?.toLowerCase().trim()
+          isCorrect = userAnswer?.toLowerCase().trim() === String(question.correctAnswer)?.toLowerCase().trim()
           break
         case "essay":
           // 주관식은 제출만 하고 정답 여부는 표시하지 않음
@@ -274,11 +274,10 @@ export function UserQuestionDisplay({ question, onQuestionUpdate }: UserQuestion
             {question.options?.map((option, index) => (
               <label
                 key={index}
-                className={`flex items-center p-3 rounded-md cursor-pointer transition-colors ${
-                  userAnswer === index
-                    ? "bg-blue-900/50 border border-blue-700"
-                    : "bg-gray-800/30 border border-gray-700/50 hover:bg-gray-700/30"
-                }`}
+                className={`flex items-center p-3 rounded-md cursor-pointer transition-colors ${userAnswer === index
+                  ? "bg-blue-900/50 border border-blue-700"
+                  : "bg-gray-800/30 border border-gray-700/50 hover:bg-gray-700/30"
+                  }`}
               >
                 <input
                   type="radio"
@@ -351,9 +350,8 @@ export function UserQuestionDisplay({ question, onQuestionUpdate }: UserQuestion
                     {runResult.testResults.map((result: any) => (
                       <div
                         key={result.index}
-                        className={`p-3 rounded border ${
-                          result.passed ? "bg-green-900/20 border-green-700/50" : "bg-red-900/20 border-red-700/50"
-                        }`}
+                        className={`p-3 rounded border ${result.passed ? "bg-green-900/20 border-green-700/50" : "bg-red-900/20 border-red-700/50"
+                          }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
                           {result.passed ? (
@@ -476,7 +474,7 @@ export function UserQuestionDisplay({ question, onQuestionUpdate }: UserQuestion
           <div className="mt-4 p-4 bg-green-900/20 border border-green-700/50 rounded-md">
             <h4 className="font-medium text-green-400 mb-2">정답</h4>
             <p className="text-green-200">
-              {question.correctAnswer !== undefined && question.options?.[question.correctAnswer]}
+              {question.correctAnswer !== undefined && question.options?.[Number(question.correctAnswer)]}
             </p>
           </div>
         )
@@ -509,15 +507,14 @@ export function UserQuestionDisplay({ question, onQuestionUpdate }: UserQuestion
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Badge
-                className={`${
-                  question.type === "multiple_choice"
-                    ? "bg-blue-900/50 text-blue-300 border-blue-700"
-                    : question.type === "coding"
-                      ? "bg-green-900/50 text-green-300 border-green-700"
-                      : question.type === "fill_in_blank"
-                        ? "bg-yellow-900/50 text-yellow-300 border-yellow-700"
-                        : "bg-purple-900/50 text-purple-300 border-purple-700"
-                }`}
+                className={`${question.type === "multiple_choice"
+                  ? "bg-blue-900/50 text-blue-300 border-blue-700"
+                  : question.type === "coding"
+                    ? "bg-green-900/50 text-green-300 border-green-700"
+                    : question.type === "fill_in_blank"
+                      ? "bg-yellow-900/50 text-yellow-300 border-yellow-700"
+                      : "bg-purple-900/50 text-purple-300 border-purple-700"
+                  }`}
               >
                 {question.type === "multiple_choice"
                   ? "객관식"

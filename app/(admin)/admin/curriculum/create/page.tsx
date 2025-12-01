@@ -197,44 +197,7 @@ const SortableStep = ({
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-gray-300">추가 자료</Label>
                   <div className="space-y-2">
-                    {(step.resources || []).map((resource, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <LinkIcon className="h-4 w-4 text-gray-400" />
-                        <Input
-                          value={resource}
-                          onChange={(e) => {
-                            const newResources = [...(step.resources || [])]
-                            newResources[idx] = e.target.value
-                            updateStep(step.id, "resources", newResources)
-                          }}
-                          className="bg-gray-700 border-gray-600 text-white focus:border-blue-500"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const newResources = [...(step.resources || [])]
-                            newResources.splice(idx, 1)
-                            updateStep(step.id, "resources", newResources)
-                          }}
-                          className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newResources = [...(step.resources || []), ""]
-                        updateStep(step.id, "resources", newResources)
-                      }}
-                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      자료 추가
-                    </Button>
+
                   </div>
                 </div>
               </div>
@@ -308,9 +271,11 @@ export default function AdminCurriculumCreatePage() {
       content:
         "# 들어가며\n\n이 단계에서는 주제에 대한 기본 개념을 소개합니다.\n\n## 학습 목표\n\n- 기본 개념 이해\n- 실습 환경 준비\n- 학습 계획 수립\n\n## 내용\n\n여기에 상세한 내용을 작성하세요.",
       order: 0,
-      duration: "10분",
-      resources: [],
+      duration: 10,
+
       description: "커리큘럼의 첫 번째 단계입니다.",
+      type: "text",
+      isOptional: false,
     },
   ])
 
@@ -428,9 +393,11 @@ export default function AdminCurriculumCreatePage() {
       title: `단계 ${steps.length + 1}`,
       content: `# 단계 ${steps.length + 1}\n\n이 단계에서 학습할 내용을 입력하세요.\n\n## 학습 목표\n\n- 목표 1\n- 목표 2\n- 목표 3\n\n## 내용\n\n여기에 상세한 내용을 작성하세요.`,
       order: steps.length,
-      duration: "15분",
-      resources: [],
+      duration: 15,
+
       description: `${steps.length + 1}번째 단계입니다.`,
+      type: "text",
+      isOptional: false,
     }
     setSteps([...steps, newStep])
   }
@@ -676,7 +643,7 @@ export default function AdminCurriculumCreatePage() {
                         folder="curriculum"
                         maxFiles={1}
                         maxSize={10}
-                        acceptedTypes={["image/*"]}
+                        // acceptedTypes={["image/*"]}
                         onFilesChange={(files) => {
                           if (files.length > 0) {
                             setThumbnailUrl(files[0].url)

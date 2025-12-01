@@ -114,7 +114,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         addDebugLog(`user_solve_logs에서 ${userLogsSnapshot.size}개 문서 발견`)
 
         userLogsSnapshot.forEach((doc: any) => {
-          const data = doc.data()
+          const data = doc.data() as any
 
           const challenge: SolvedChallenge = {
             id: data.challengeId || data.problemId || doc.id,
@@ -155,7 +155,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         addDebugLog(`wargame_solve_logs에서 ${wargameLogsSnapshot.size}개 문서 발견`)
 
         wargameLogsSnapshot.forEach((doc: any) => {
-          const data = doc.data()
+          const data = doc.data() as any
           const challengeId = data.challengeId || doc.id
 
           if (!allChallenges.some((c) => c.id === challengeId)) {
@@ -190,7 +190,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         addDebugLog(`ctf_solve_logs에서 ${ctfLogsSnapshot.size}개 문서 발견`)
 
         ctfLogsSnapshot.forEach((doc: any) => {
-          const data = doc.data()
+          const data = doc.data() as any
           const problemId = data.problemId || data.challengeId || doc.id
 
           if (!allChallenges.some((c) => c.id === problemId)) {
@@ -227,7 +227,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         addDebugLog(`ctf_results에서 ${ctfResultsSnapshot.size}개 문서 발견`)
 
         ctfResultsSnapshot.forEach((doc: any) => {
-          const data = doc.data()
+          const data = doc.data() as any
 
           allChallenges.push({
             id: doc.id,
@@ -253,7 +253,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
         let foundInWargame = 0
         wargameChallengesSnapshot.forEach((doc: any) => {
-          const data = doc.data()
+          const data = doc.data() as any
           let isSolved = false
           let solvedAt = Timestamp.now()
 
@@ -305,7 +305,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
         let foundInCtf = 0
         ctfProblemsSnapshot.forEach((doc: any) => {
-          const data = doc.data()
+          const data = doc.data() as any
           let isSolved = false
           let solvedAt = Timestamp.now()
 

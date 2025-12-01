@@ -49,7 +49,6 @@ export function ProfileFrameDisplay({
           transition: {
             duration: 2,
             repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
           },
         }
       case "pulse":
@@ -60,7 +59,6 @@ export function ProfileFrameDisplay({
           transition: {
             duration: 2,
             repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
           },
         }
       case "rotate":
@@ -71,7 +69,6 @@ export function ProfileFrameDisplay({
           transition: {
             duration: 10,
             repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
           },
         }
       case "rainbow":
@@ -82,7 +79,6 @@ export function ProfileFrameDisplay({
           transition: {
             duration: 3,
             repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
           },
         }
       default:
@@ -136,7 +132,7 @@ export function ProfileFrameDisplay({
           className="absolute -bottom-6 left-1/2 transform -translate-x-1/2"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ duration: 10, repeat: Infinity }}
         >
           <Badge
             variant="secondary"
@@ -160,22 +156,20 @@ export function ProfileFrameDisplay({
           }}
           transition={{
             duration: 2,
-            repeat: Number.POSITIVE_INFINITY,
             ease: "easeInOut",
           }}
         >
           <div
-            className={`h-3 w-3 rounded-full ${
-              frame.rarity === "legendary"
-                ? "bg-yellow-400"
-                : frame.rarity === "epic"
-                  ? "bg-purple-400"
-                  : frame.rarity === "rare"
-                    ? "bg-blue-400"
-                    : frame.rarity === "uncommon"
-                      ? "bg-green-400"
-                      : "bg-gray-400"
-            }`}
+            className={`h-3 w-3 rounded-full ${frame.rarity === "legendary"
+              ? "bg-yellow-400"
+              : frame.rarity === "epic"
+                ? "bg-purple-400"
+                : frame.rarity === "rare"
+                  ? "bg-blue-400"
+                  : frame.rarity === "uncommon"
+                    ? "bg-green-400"
+                    : "bg-gray-400"
+              }`}
           />
         </motion.div>
       )}

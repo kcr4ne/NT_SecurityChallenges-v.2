@@ -40,8 +40,8 @@ const Particles: React.FC<ParticlesProps> = ({ quantity = 50, className }) => {
       speedY: number
 
       constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
+        this.x = Math.random() * (canvas?.width || 0)
+        this.y = Math.random() * (canvas?.height || 0)
         this.size = Math.random() * 2 + 1
         this.color = "rgba(255, 255, 255, 0.5)"
         this.opacity = Math.random() * 0.5 + 0.2
@@ -53,15 +53,16 @@ const Particles: React.FC<ParticlesProps> = ({ quantity = 50, className }) => {
         this.x += this.speedX
         this.y += this.speedY
 
-        if (this.x < 0 || this.x > canvas.width) {
+        if (this.x < 0 || this.x > (canvas?.width || 0)) {
           this.speedX = -this.speedX
         }
-        if (this.y < 0 || this.y > canvas.height) {
+        if (this.y < 0 || this.y > (canvas?.height || 0)) {
           this.speedY = -this.speedY
         }
       }
 
       draw() {
+        if (!ctx) return
         ctx.fillStyle = this.color
         ctx.globalAlpha = this.opacity
         ctx.beginPath()
@@ -80,6 +81,7 @@ const Particles: React.FC<ParticlesProps> = ({ quantity = 50, className }) => {
 
     // Animation loop
     function animate() {
+      if (!ctx || !canvas) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       for (let i = 0; i < particlesArray.length; i++) {

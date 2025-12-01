@@ -37,7 +37,7 @@ export interface CTFProblem {
   points: number
   flag: string
   hints?: string[]
-  files?: string[]
+  files?: (string | { name: string; url: string })[]
   order: number
   author: string
   authorId: string

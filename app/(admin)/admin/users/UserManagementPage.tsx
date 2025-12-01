@@ -168,7 +168,7 @@ export default function UserManagementPage() {
 
     // 상태 필터
     if (statusFilter !== "all") {
-      result = result.filter((user) => user.status === statusFilter)
+      result = result.filter((user) => (user.status as unknown as string) === statusFilter)
     }
 
     // 정렬
@@ -632,7 +632,7 @@ export default function UserManagementPage() {
                       {filteredUsers.map((user) => (
                         <TableRow
                           key={user.uid}
-                          className={`hover:bg-gray-50 ${user.status !== "active" ? "bg-red-50/30" : ""}`}
+                          className={`hover:bg-gray-50 ${(user.status as unknown as string) !== "active" ? "bg-red-50/30" : ""}`}
                         >
                           <TableCell>
                             <Checkbox
@@ -657,9 +657,9 @@ export default function UserManagementPage() {
                             </div>
                           </TableCell>
 
-                          <TableCell>{renderRoleBadge(user.role || "user", user.email)}</TableCell>
+                          <TableCell>{renderRoleBadge(user.role || "user", user.email || "")}</TableCell>
 
-                          <TableCell>{renderStatusBadge(user.status)}</TableCell>
+                          <TableCell>{renderStatusBadge(user.status as unknown as string)}</TableCell>
 
                           <TableCell>
                             <div className="space-y-1">

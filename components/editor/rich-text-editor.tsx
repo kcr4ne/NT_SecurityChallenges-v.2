@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FileUploader } from "@/components/common/file-uploader"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { uploadFile } from "@/lib/file-upload"
 import { Label } from "@/components/ui/label"
 
 interface RichTextEditorProps {
@@ -207,10 +208,19 @@ export function RichTextEditor({
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <FileUploader
-                    onUploadComplete={insertImage}
-                    acceptedFileTypes={["image/*"]}
-                    maxFileSizeMB={5}
-                    uploadPath="editor-images"
+                    onFilesSelected={async (files) => {
+                      if (files.length > 0) {
+                        const file = files[0]
+                        const result = await uploadFile(file, "editor-images")
+                        if (result.success && result.fileUrl) {
+                          insertImage(result.fileUrl)
+                        } else {
+                          alert("이미지 업로드 실패")
+                        }
+                      }
+                    }}
+                    acceptedFileTypes="image/*"
+                    maxSize={5}
                   />
                 </div>
               </DialogContent>

@@ -168,7 +168,7 @@ export async function endSeason(seasonId: string, adminId: string) {
     const participantsSnapshot = await getDocs(participantsQuery)
 
     const finalRankings: any[] = []
-    participantsSnapshot.forEach((doc, index) => {
+    participantsSnapshot.docs.forEach((doc, index) => {
       const data = doc.data()
       const finalRank = index + 1
 
@@ -311,7 +311,7 @@ export async function recalculateSeasonRankings(seasonId: string) {
 
     const batch = writeBatch(db)
 
-    participantsSnapshot.forEach((doc, index) => {
+    participantsSnapshot.docs.forEach((doc, index) => {
       batch.update(doc.ref, {
         rank: index + 1,
         updatedAt: Timestamp.now(),

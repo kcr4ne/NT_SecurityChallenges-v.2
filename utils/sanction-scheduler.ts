@@ -1,5 +1,5 @@
 import { collection, query, where, getDocs, writeBatch, doc } from "firebase/firestore"
-import { db } from "./firebase"
+import { db } from "@/lib/firebase"
 
 export async function checkExpiredSanctions(): Promise<void> {
   try {

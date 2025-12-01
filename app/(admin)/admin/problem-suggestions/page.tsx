@@ -190,7 +190,7 @@ export default function AdminProblemSuggestionsPage() {
                           <TableCell>
                             {suggestion.status === "pending" && <Badge>대기 중</Badge>}
                             {suggestion.status === "approved" && (
-                              <Badge variant="success">
+                              <Badge className="bg-green-500 hover:bg-green-600">
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 승인됨
                               </Badge>

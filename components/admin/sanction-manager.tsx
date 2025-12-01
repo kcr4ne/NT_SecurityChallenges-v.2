@@ -87,7 +87,7 @@ export function SanctionManager({ user, onSave }: SanctionManagerProps) {
         // 상태 업데이트는 부모 컴포넌트에서 처리
         window.location.reload() // 임시로 페이지 새로고침
       } else {
-        throw new Error(result.error)
+        throw new Error(String(result.error))
       }
     } catch (error) {
       console.error("Error applying sanction:", error)
@@ -115,7 +115,7 @@ export function SanctionManager({ user, onSave }: SanctionManagerProps) {
 
         window.location.reload() // 임시로 페이지 새로고침
       } else {
-        throw new Error(result.error)
+        throw new Error(String(result.error))
       }
     } catch (error) {
       console.error("Error canceling sanction:", error)

@@ -78,6 +78,9 @@ export default function AdminCurriculumPage() {
           order: data.order || 0,
           createdAt: data.createdAt || { toDate: () => new Date() },
           updatedAt: data.updatedAt || { toDate: () => new Date() },
+          title: data.name || "", // Map name to title
+          slug: data.slug || "",
+          isVisible: data.isVisible !== undefined ? data.isVisible : true,
           createdBy: data.createdBy || "",
         })
       })
@@ -101,11 +104,14 @@ export default function AdminCurriculumPage() {
           updatedAt: data.updatedAt || { toDate: () => new Date() },
           createdBy: data.createdBy || "",
           createdByName: data.createdByName || "",
-          slides: data.slides || [],
+          // slides: data.slides || [],
           isPublished: data.isPublished || false,
           viewCount: data.viewCount || 0,
           tags: data.tags || [],
           difficulty: data.difficulty || "Easy",
+          categories: [], // Default
+          estimatedDuration: 0, // Default
+          isVisible: data.isVisible !== undefined ? data.isVisible : true,
         })
       })
       setCurriculums(curriculumsData)
@@ -360,7 +366,7 @@ export default function AdminCurriculumPage() {
                     {filteredCurriculums.map((curriculum) => (
                       <TableRow key={curriculum.id}>
                         <TableCell className="font-medium">{curriculum.title}</TableCell>
-                        <TableCell>{getCategoryName(curriculum.category)}</TableCell>
+                        <TableCell>{getCategoryName(curriculum.category || "")}</TableCell>
                         <TableCell>
                           <Badge className={getDifficultyColor(curriculum.difficulty || "Easy")}>
                             {curriculum.difficulty || "Easy"}
@@ -370,7 +376,7 @@ export default function AdminCurriculumPage() {
                           <div className="flex items-center gap-2">
                             <Switch
                               checked={curriculum.isPublished}
-                              onCheckedChange={() => togglePublishStatus(curriculum.id, curriculum.isPublished)}
+                              onCheckedChange={() => togglePublishStatus(curriculum.id, curriculum.isPublished || false)}
                             />
                             <Label>
                               {curriculum.isPublished ? (

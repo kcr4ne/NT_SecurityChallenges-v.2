@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
   response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 
   // API 요청 제한 (간단한 rate limiting)
-  const ip = request.ip || request.headers.get("x-forwarded-for") || "unknown"
+  const ip = (request as any).ip || request.headers.get("x-forwarded-for") || "unknown"
 
   // 민감한 경로 보호
   if (request.nextUrl.pathname.startsWith("/admin")) {

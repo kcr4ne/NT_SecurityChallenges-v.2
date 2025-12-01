@@ -250,7 +250,7 @@ export async function sendNotificationToAllAdmins(
     const adminQuery = query(usersRef, where("role", "==", "admin"))
     const adminSnapshot = await getDocs(adminQuery)
 
-    const notifications = []
+    const notifications: Promise<any>[] = []
 
     adminSnapshot.forEach((doc) => {
       const adminId = doc.id
@@ -285,7 +285,7 @@ export async function sendNotificationByRole(
     const roleQuery = query(usersRef, where("role", "==", role))
     const roleSnapshot = await getDocs(roleQuery)
 
-    const notifications = []
+    const notifications: Promise<any>[] = []
 
     roleSnapshot.forEach((doc) => {
       notifications.push(

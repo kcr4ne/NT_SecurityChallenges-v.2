@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "./auth-context"
+import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 
 // 사용자 접근 권한 확인 함수 (간단한 버전)
@@ -51,7 +51,7 @@ export function useSanctionCheck() {
 }
 
 // 특정 기능 접근 권한 확인
-export function checkFeatureAccess(userProfile?: any, feature: string): boolean {
+export function checkFeatureAccess(userProfile: any | undefined, feature: string): boolean {
   if (!userProfile) return false
 
   const accessCheck = checkUserAccess(userProfile)

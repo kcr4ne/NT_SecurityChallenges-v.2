@@ -8,6 +8,7 @@ export interface WargameChallenge {
   category: string
   difficulty: string
   level: number
+  points: number
   author: string
   authorId: string
   createdAt: Timestamp
@@ -54,6 +55,7 @@ export function normalizeWargameChallengeData(data: any, id: string): WargameCha
     category: data.category || "기타",
     difficulty: data.difficulty || "중급",
     level: level,
+    points: data.points || calculatePointsByLevel(level),
     author: data.author || "",
     authorId: data.authorId || "",
     createdAt: data.createdAt || Timestamp.now(),

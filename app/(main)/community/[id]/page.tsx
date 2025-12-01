@@ -28,17 +28,21 @@ interface CommunityPost {
   content: string
   author: string
   authorId: string
+  authorName: string
+  authorAvatar?: string
   category: string
   tags: string[]
   createdAt: Timestamp
   updatedAt: Timestamp
   viewCount: number
   likes: string[]
+  bookmarks: string[]
   commentCount: number
   isHidden?: boolean
   isPinned?: boolean
   images?: string[]
   links?: string[]
+  isPublished?: boolean
 }
 
 interface Comment {
@@ -47,10 +51,14 @@ interface Comment {
   content: string
   authorId: string
   authorUsername: string
+  authorName: string
+  authorAvatar?: string
   createdAt: Timestamp
   updatedAt?: Timestamp
   parentId?: string
   isDeleted?: boolean
+  likes: string[]
+  replies?: Comment[]
 }
 
 export default function CommunityPostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -100,6 +108,7 @@ export default function CommunityPostPage({ params }: { params: Promise<{ id: st
         id: postSnap.id,
         title: postData.title || "",
         content: postData.content || "",
+        author: postData.author || postData.authorName || "Unknown",
         authorId: postData.authorId || "",
         authorName: postData.authorName || "",
         authorAvatar: postData.authorAvatar || "",
@@ -143,6 +152,7 @@ export default function CommunityPostPage({ params }: { params: Promise<{ id: st
           postId: data.postId || "",
           content: data.content || "",
           authorId: data.authorId || "",
+          authorUsername: data.authorUsername || data.authorName || "Unknown",
           authorName: data.authorName || "",
           authorAvatar: data.authorAvatar || "",
           createdAt: data.createdAt,

@@ -116,10 +116,10 @@ export default function EditChallengePage({ params }: { params: Promise<{ id: st
       }
     }
 
-    if (params.id && isAdmin) {
+    if (id && isAdmin) {
       fetchChallenge()
     }
-  }, [params.id, isAdmin, toast])
+  }, [id, isAdmin, toast])
 
   // 파일 URL 추가 핸들러
   const handleAddFileUrl = () => {

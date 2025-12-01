@@ -163,7 +163,7 @@ export default function AdminSeasonsPage() {
       if (activeSeason) {
         const leaderboardResult = await getSeasonLeaderboard(activeSeason.id)
         if (leaderboardResult.success) {
-          setParticipants(leaderboardResult.leaderboard)
+          setParticipants((leaderboardResult.leaderboard || []) as any)
         }
 
         const dashboardResult = await getSeasonDashboardData(activeSeason.id)
@@ -675,7 +675,7 @@ export default function AdminSeasonsPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {Object.values(dashboardData.dailyActivity).reduce((a: number, b: number) => a + b, 0)}
+                          {(Object.values(dashboardData.dailyActivity) as number[]).reduce((a: number, b: number) => a + b, 0)}
                         </div>
                         <p className="text-xs text-muted-foreground">총 활동 수</p>
                       </CardContent>

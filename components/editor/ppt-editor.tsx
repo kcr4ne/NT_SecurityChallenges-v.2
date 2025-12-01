@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Slide } from "@/lib/curriculum-types"
+import { uploadFile } from "@/lib/file-upload"
 import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from "uuid"
 import { FileUploader } from "@/components/common/file-uploader"
@@ -45,7 +46,7 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core"
 import {
   SortableContext,
   sortableKeyboardCoordinates,
@@ -61,8 +62,28 @@ interface PPTEditorProps {
   title: string
 }
 
+interface SortableSlideItemProps {
+  slide: Slide
+  index: number
+  isActive: boolean
+  onClick: () => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  onDuplicate: () => void
+  onDelete: () => void
+}
+
 // 드래그 가능한 슬라이드 아이템 컴포넌트
-function SortableSlideItem({ slide, index, isActive, onClick, onMoveUp, onMoveDown, onDuplicate, onDelete }) {
+function SortableSlideItem({
+  slide,
+  index,
+  isActive,
+  onClick,
+  onMoveUp,
+  onMoveDown,
+  onDuplicate,
+  onDelete,
+}: SortableSlideItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: slide.id,
   })
@@ -150,6 +171,7 @@ export function PPTEditor({ initialSlides = [], onSave, title }: PPTEditorProps)
           title: "슬라이드 1",
           content: "<p>내용을 입력하세요.</p>",
           order: 0,
+          type: "text",
         },
       ],
   )
@@ -217,6 +239,7 @@ export function PPTEditor({ initialSlides = [], onSave, title }: PPTEditorProps)
       title: `슬라이드 ${slides.length + 1}`,
       content: "<p>내용을 입력하세요.</p>",
       order: slides.length,
+      type: "text",
     }
     setSlides([...slides, newSlide])
     setActiveSlide(slides.length)
@@ -232,6 +255,7 @@ export function PPTEditor({ initialSlides = [], onSave, title }: PPTEditorProps)
       title: `${template.name}`,
       content: template.content,
       order: slides.length,
+      type: "text",
     }
     setSlides([...slides, newSlide])
     setActiveSlide(slides.length)
@@ -245,6 +269,7 @@ export function PPTEditor({ initialSlides = [], onSave, title }: PPTEditorProps)
       id: uuidv4(),
       title: `${slideToClone.title} (복사본)`,
       order: slides.length,
+      type: slideToClone.type || "text",
     }
 
     const newSlides = [...slides]
@@ -326,10 +351,10 @@ export function PPTEditor({ initialSlides = [], onSave, title }: PPTEditorProps)
   }
 
   // 드래그 앤 드롭으로 슬라이드 순서 변경
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       const oldIndex = slides.findIndex((slide) => slide.id === active.id)
       const newIndex = slides.findIndex((slide) => slide.id === over.id)
 
@@ -673,10 +698,20 @@ export function PPTEditor({ initialSlides = [], onSave, title }: PPTEditorProps)
                       </div>
                     ) : (
                       <FileUploader
-                        onUploadComplete={(url) => handleImageUpload(activeSlide, url)}
-                        acceptedFileTypes={["image/*"]}
-                        maxFileSizeMB={5}
-                        uploadPath={`curriculum/slides/${slides[activeSlide].id}`}
+                        onFilesSelected={async (files) => {
+                          if (files.length > 0) {
+                            const file = files[0]
+                            const result = await uploadFile(file, `curriculum/slides/${slides[activeSlide].id}`)
+                            if (result.success && result.fileUrl) {
+                              handleImageUpload(activeSlide, result.fileUrl)
+                            } else {
+                              alert("이미지 업로드 실패")
+                            }
+                          }
+                        }}
+                        acceptedFileTypes="image/*"
+                        maxSize={5}
+                        isUploading={false}
                       />
                     )}
                   </div>
@@ -721,7 +756,7 @@ export function PPTEditor({ initialSlides = [], onSave, title }: PPTEditorProps)
                       max={36}
                       step={1}
                       value={[fontSize]}
-                      onValueChange={(value) => setFontSize(value[0])}
+                      onValueChange={(value: number[]) => setFontSize(value[0])}
                     />
                   </div>
 

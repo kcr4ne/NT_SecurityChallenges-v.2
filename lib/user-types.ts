@@ -157,6 +157,8 @@ export interface ProfileStats {
 export interface UserProfile {
   uid: string
   username: string
+  displayName?: string
+  role?: string
   email?: string
   photoURL?: string
   bio?: string
@@ -167,9 +169,13 @@ export interface UserProfile {
   ctfPoints: number
   solvedChallenges: string[]
   createdAt: Timestamp
+  updatedAt?: Timestamp
   lastLogin?: Timestamp
+  emailVerified?: boolean
+  isTemporary?: boolean
   rank?: number
   title?: string // 칭호 필드 추가
+  affiliation?: string // 소속 (단일 문자열)
   // 여러 소속 정보를 배열로 저장
   affiliations?: Affiliation[]
   // 레벨 시스템 관련 필드
@@ -235,6 +241,8 @@ export function normalizeUserProfileData(data: any, id: string): UserProfile {
   return {
     uid: id,
     username: data.username || "사용자",
+    displayName: data.displayName || data.username || "사용자",
+    role: data.role || "user",
     email: data.email,
     photoURL: data.photoURL,
     bio: data.bio || "",
@@ -248,7 +256,6 @@ export function normalizeUserProfileData(data: any, id: string): UserProfile {
     lastLogin: data.lastLogin,
     rank: data.rank || 0,
     title: data.title || (data.role === "admin" ? "관리자" : undefined),
-    role: data.role,
     // 소속 정보 배열
     affiliations: data.affiliations || [],
     // 레벨 시스템 관련 필드

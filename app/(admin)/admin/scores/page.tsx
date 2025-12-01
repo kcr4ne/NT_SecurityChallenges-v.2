@@ -160,7 +160,7 @@ export default function AdminScoresPage() {
 
       const scoresData: UserScore[] = []
 
-      usersSnapshot.forEach((docSnapshot, index) => {
+      usersSnapshot.docs.forEach((docSnapshot, index) => {
         const userData = docSnapshot.data()
         console.log("User data:", userData)
 
@@ -717,7 +717,6 @@ export default function AdminScoresPage() {
                               <Switch
                                 checked={user.isActive}
                                 onCheckedChange={() => toggleUserStatus(user.userId, user.isActive)}
-                                size="sm"
                               />
                               <span className="text-xs">{user.isActive ? "활성" : "비활성"}</span>
                             </div>

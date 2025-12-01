@@ -91,6 +91,9 @@ export default function CurriculumPage() {
           order: data.order || 0,
           createdAt: data.createdAt || { toDate: () => new Date() },
           updatedAt: data.updatedAt || { toDate: () => new Date() },
+          title: data.name || "", // Map name to title
+          slug: data.slug || "",
+          isVisible: data.isVisible !== undefined ? data.isVisible : true,
           createdBy: data.createdBy || "",
         })
       })
@@ -129,6 +132,9 @@ export default function CurriculumPage() {
             courseType: data.courseType || "Skill Path",
             rating: data.rating || 4.5,
             enrollmentCount: data.enrollmentCount || 0,
+            categories: [], // Default empty array
+            estimatedDuration: 0, // Default 0
+            isVisible: data.isVisible !== undefined ? data.isVisible : true,
             instructor: data.instructor || "",
           })
         })
@@ -167,6 +173,9 @@ export default function CurriculumPage() {
                 rating: data.rating || 4.5,
                 enrollmentCount: data.enrollmentCount || 0,
                 instructor: data.instructor || "",
+                categories: [], // Default empty array
+                estimatedDuration: 0, // Default 0
+                isVisible: data.isVisible !== undefined ? data.isVisible : true,
               })
             }
           })
@@ -286,7 +295,7 @@ export default function CurriculumPage() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-xl"></div>
               <div className="relative">
-                <BannerSlider banners={banners} />
+                <BannerSlider banners={banners as any} />
               </div>
             </div>
           </div>
