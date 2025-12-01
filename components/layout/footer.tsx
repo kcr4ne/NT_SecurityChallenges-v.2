@@ -81,20 +81,20 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-muted-foreground transition-colors hover:text-foreground">
-                  자주 묻는 질문
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className="text-muted-foreground transition-colors hover:text-foreground">
                   문의하기
+                </Link>
+              </li>
+              {/* <li>
+                <Link href="/faq" className="text-muted-foreground transition-colors hover:text-foreground">
+                  자주 묻는 질문
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className="text-muted-foreground transition-colors hover:text-foreground">
                   개인정보처리방침
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -116,7 +116,7 @@ export function Footer() {
             보유.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="/terms" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+            {/* <Link href="/terms" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
               이용약관
             </Link>
             <Link href="/privacy" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
@@ -124,7 +124,7 @@ export function Footer() {
             </Link>
             <Link href="/cookies" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
               쿠키 정책
-            </Link>
+            </Link> */}
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>Made with</span>

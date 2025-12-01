@@ -18,6 +18,9 @@ import { doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc, dele
 import { db } from "@/lib/firebase-config"
 import Link from "next/link"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import rehypeHighlight from "rehype-highlight"
+import "highlight.js/styles/github-dark.css"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
@@ -645,7 +648,9 @@ export default function CommunityPostPage({ params }: { params: Promise<{ id: st
 
             <CardContent>
               <div className="prose prose-invert max-w-none mb-6 text-white [&>*]:text-white [&>p]:text-gray-200 [&>h1]:text-white [&>h2]:text-white [&>h3]:text-white [&>h4]:text-white [&>h5]:text-white [&>h6]:text-white [&>li]:text-gray-200 [&>blockquote]:text-gray-300 [&>code]:text-blue-300 [&>pre]:text-gray-100">
-                <ReactMarkdown>{post.content}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                  {post.content}
+                </ReactMarkdown>
               </div>
 
               {/* 액션 버튼들 */}

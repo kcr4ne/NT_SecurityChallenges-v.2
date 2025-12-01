@@ -227,6 +227,9 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
   const [difficultyVotes, setDifficultyVotes] = useState<DifficultyVote[]>([])
   const [userDifficultyVote, setUserDifficultyVote] = useState<number | null>(null)
 
+  // 관리자 여부 확인
+  const isAdmin = userProfile?.role === "admin" || userProfile?.email === "mistarcodm@gmail.com"
+
   // 풀이 작성 관련 상태
   const [isWritingUp, setIsWritingUp] = useState(false)
   const [writeUpTitle, setWriteUpTitle] = useState("")
@@ -650,7 +653,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
               const averageVote = votesData.reduce((sum, vote) => sum + vote.vote, 0) / votesData.length
               const newLevel = Math.round(averageVote)
 
-              if (newLevel !== challenge.level) {
+              if (newLevel !== challenge.level && isAdmin) {
                 updateChallengeLevel(newLevel)
               }
             }
@@ -667,7 +670,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
     }
 
     fetchDifficultyVotes()
-  }, [id, user, challenge])
+  }, [id, user, challenge, isAdmin])
 
   // 문제 레벨 업데이트
   const updateChallengeLevel = async (newLevel: number) => {

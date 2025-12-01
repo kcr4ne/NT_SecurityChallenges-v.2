@@ -342,8 +342,8 @@ export default function WargamePage() {
         querySnapshot.forEach((doc) => {
           const data = doc.data() as WargameChallenge
           challengesData.push({
-            // id: doc.id,
             ...data,
+            id: doc.id,
             solvedBy: data.solvedBy || [],
             solvedCount: data.solvedCount || 0,
           })
