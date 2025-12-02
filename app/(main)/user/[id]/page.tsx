@@ -99,56 +99,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
       let wargameCount = 0
       let ctfCount = 0
 
-      // 1. user_solve_logs 컬렉션 조회
-      addDebugLog("1. user_solve_logs 컬렉션 조회 중...")
-      try {
-        const userSolveLogsRef = collection(db, "user_solve_logs")
-        const userLogsQuery = query(
-          userSolveLogsRef,
-          where("userId", "==", userId),
-          orderBy("solvedAt", "desc"),
-          limit(100),
-        )
-        const userLogsSnapshot = await getDocs(userLogsQuery)
-
-        addDebugLog(`user_solve_logs에서 ${userLogsSnapshot.size}개 문서 발견`)
-
-        userLogsSnapshot.forEach((doc: any) => {
-          const data = doc.data() as any
-
-          const challenge: SolvedChallenge = {
-            id: data.challengeId || data.problemId || doc.id,
-            title: data.challengeTitle || data.problemTitle || data.title || `문제 #${doc.id.substring(0, 8)}`,
-            category: data.category || (data.type === "wargame" ? "기타" : "CTF"),
-            difficulty: data.difficulty || (data.level ? `레벨 ${data.level}` : "중급"),
-            points: data.points || 0,
-            solvedAt: data.solvedAt || data.timestamp || Timestamp.now(),
-            type: data.type === "wargame" ? "wargame" : "ctf",
-            contestId: data.contestId,
-            contestTitle: data.contestTitle,
-          }
-
-          allChallenges.push(challenge)
-
-          if (data.type === "wargame") {
-            wargameCount++
-          } else {
-            ctfCount++
-          }
-        })
-      } catch (error) {
-        addDebugLog(`user_solve_logs 조회 오류: ${error}`)
-      }
-
-      // 2. wargame_solve_logs 컬렉션 조회
-      addDebugLog("2. wargame_solve_logs 컬렉션 조회 중...")
+      // 1. wargame_solve_logs 컬렉션 조회
+      addDebugLog("1. wargame_solve_logs 컬렉션 조회 중...")
       try {
         const wargameSolveLogsRef = collection(db, "wargame_solve_logs")
         const wargameLogsQuery = query(
           wargameSolveLogsRef,
           where("userId", "==", userId),
-          orderBy("solvedAt", "desc"),
-          limit(50),
         )
         const wargameLogsSnapshot = await getDocs(wargameLogsQuery)
 
@@ -165,7 +122,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
               category: data.category || "기타",
               difficulty: data.level ? `레벨 ${data.level}` : data.difficulty || "중급",
               points: data.points || 0,
-              solvedAt: data.solvedAt || Timestamp.now(),
+              solvedAt: data.solvedAt,
               type: "wargame",
             })
             wargameCount++
@@ -175,15 +132,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         addDebugLog(`wargame_solve_logs 조회 오류: ${error}`)
       }
 
-      // 3. ctf_solve_logs 컬렉션 조회
-      addDebugLog("3. ctf_solve_logs 컬렉션 조회 중...")
+      // 2. ctf_solve_logs 컬렉션 조회
+      addDebugLog("2. ctf_solve_logs 컬렉션 조회 중...")
       try {
         const ctfSolveLogsRef = collection(db, "ctf_solve_logs")
         const ctfLogsQuery = query(
           ctfSolveLogsRef,
           where("userId", "==", userId),
-          orderBy("solvedAt", "desc"),
-          limit(50),
         )
         const ctfLogsSnapshot = await getDocs(ctfLogsQuery)
 
@@ -200,7 +155,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
               category: data.category || "CTF",
               difficulty: data.difficulty || "중급",
               points: data.points || 0,
-              solvedAt: data.solvedAt || Timestamp.now(),
+              solvedAt: data.solvedAt,
               type: "ctf",
               contestId: data.contestId,
               contestTitle: data.contestTitle,
@@ -210,6 +165,48 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         })
       } catch (error) {
         addDebugLog(`ctf_solve_logs 조회 오류: ${error}`)
+      }
+
+      // 3. user_solve_logs 컬렉션 조회
+      addDebugLog("3. user_solve_logs 컬렉션 조회 중...")
+      try {
+        const userSolveLogsRef = collection(db, "user_solve_logs")
+        const userLogsQuery = query(
+          userSolveLogsRef,
+          where("userId", "==", userId),
+        )
+        const userLogsSnapshot = await getDocs(userLogsQuery)
+
+        addDebugLog(`user_solve_logs에서 ${userLogsSnapshot.size}개 문서 발견`)
+
+        userLogsSnapshot.forEach((doc: any) => {
+          const data = doc.data() as any
+          const challengeId = data.challengeId || data.problemId || doc.id
+
+          if (!allChallenges.some((c) => c.id === challengeId)) {
+            const challenge: SolvedChallenge = {
+              id: challengeId,
+              title: data.challengeTitle || data.problemTitle || data.title || `문제 #${doc.id.substring(0, 8)}`,
+              category: data.category || (data.type === "wargame" ? "기타" : "CTF"),
+              difficulty: data.difficulty || (data.level ? `레벨 ${data.level}` : "중급"),
+              points: data.points || 0,
+              solvedAt: data.solvedAt || data.timestamp,
+              type: data.type === "wargame" ? "wargame" : "ctf",
+              contestId: data.contestId,
+              contestTitle: data.contestTitle,
+            }
+
+            allChallenges.push(challenge)
+
+            if (data.type === "wargame") {
+              wargameCount++
+            } else {
+              ctfCount++
+            }
+          }
+        })
+      } catch (error) {
+        addDebugLog(`user_solve_logs 조회 오류: ${error}`)
       }
 
       // 4. ctf_results 컬렉션 조회
@@ -235,7 +232,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             category: "CTF 대회",
             difficulty: "대회",
             points: data.score || 0,
-            solvedAt: data.timestamp || Timestamp.now(),
+            solvedAt: data.timestamp,
             type: "ctf",
             contestId: data.contestId,
             contestTitle: data.contestTitle,
@@ -255,7 +252,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         wargameChallengesSnapshot.forEach((doc: any) => {
           const data = doc.data() as any
           let isSolved = false
-          let solvedAt = Timestamp.now()
+          let solvedAt: Timestamp | undefined = undefined
 
           // solvedBy 배열에서 userId를 찾거나 solvedTimes 맵에서 userId를 찾음
           const solvedByEntry = data.solvedBy?.find((solver: any) => {
@@ -307,7 +304,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         ctfProblemsSnapshot.forEach((doc: any) => {
           const data = doc.data() as any
           let isSolved = false
-          let solvedAt = Timestamp.now()
+          let solvedAt: Timestamp | undefined = undefined
 
           // solvedBy 배열에서 userId를 찾거나 solvedTimes 맵에서 userId를 찾음
           const solvedByEntry = data.solvedBy?.find((solver: any) => {
@@ -361,8 +358,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
       // 시간순 정렬
       allChallenges.sort((a, b) => {
-        const dateA = getTimestampDate(a.solvedAt)
-        const dateB = getTimestampDate(b.solvedAt)
+        const dateA = a.solvedAt ? getTimestampDate(a.solvedAt) : new Date(0)
+        const dateB = b.solvedAt ? getTimestampDate(b.solvedAt) : new Date(0)
         return dateB.getTime() - dateA.getTime()
       })
 
@@ -1079,10 +1076,14 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                     <p className="font-medium text-foreground">{challenge.points} 점</p>
                                     <div className="text-xs text-muted-foreground">
                                       <p className="font-medium">
-                                        {formatRelativeTime(getTimestampDate(challenge.solvedAt))}
+                                        {challenge.solvedAt
+                                          ? formatRelativeTime(getTimestampDate(challenge.solvedAt))
+                                          : "날짜 정보 없음"}
                                       </p>
                                       <p className="text-[10px] opacity-75">
-                                        {formatDateTime(getTimestampDate(challenge.solvedAt))}
+                                        {challenge.solvedAt
+                                          ? formatDateTime(getTimestampDate(challenge.solvedAt))
+                                          : "-"}
                                       </p>
                                     </div>
                                   </div>
@@ -1212,12 +1213,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                     <div className="mt-2 text-sm text-muted-foreground">
                                       <div className="flex items-center gap-2">
                                         <Clock className="h-3.5 w-3.5" />
-                                        <span className="font-medium">
-                                          {formatRelativeTime(getTimestampDate(challenge.solvedAt))}
-                                        </span>
-                                        <span className="text-xs opacity-75">
-                                          ({formatDateTime(getTimestampDate(challenge.solvedAt))})
-                                        </span>
+                                          <span className="font-medium">
+                                            {challenge.solvedAt
+                                              ? formatRelativeTime(getTimestampDate(challenge.solvedAt))
+                                              : "날짜 정보 없음"}
+                                          </span>
+                                          <span className="text-xs opacity-75">
+                                            ({challenge.solvedAt
+                                              ? formatDateTime(getTimestampDate(challenge.solvedAt))
+                                              : "-"})
+                                          </span>
                                       </div>
                                     </div>
                                     <CollapsibleContent>
@@ -1245,7 +1250,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                           <div className="space-y-1">
                                             <p className="text-xs text-muted-foreground">해결 날짜</p>
                                             <p className="text-sm font-medium">
-                                              {formatDateTime(getTimestampDate(challenge.solvedAt))}
+                                              {challenge.solvedAt
+                                                ? formatDateTime(getTimestampDate(challenge.solvedAt))
+                                                : "날짜 정보 없음"}
                                             </p>
                                           </div>
                                           {challenge.type === "ctf" && challenge.contestTitle && (

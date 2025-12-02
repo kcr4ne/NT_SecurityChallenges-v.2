@@ -230,7 +230,7 @@ export interface SolvedChallenge {
   category: string
   difficulty: string
   points: number
-  solvedAt: Timestamp
+  solvedAt?: Timestamp
   type: "wargame" | "ctf"
   contestId?: string
   contestTitle?: string

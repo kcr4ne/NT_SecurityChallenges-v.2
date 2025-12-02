@@ -320,47 +320,11 @@ export default function MyPage() {
         console.error("Error fetching curriculum progress:", error)
       }
 
-      // 1. user_solve_logs 컬렉션 조회 (가장 중요한 소스)
-      addDebugLog("1. user_solve_logs 컬렉션 조회 중...")
-      try {
-        const userSolveLogsRef = collection(db, "user_solve_logs")
-        const userLogsQuery = query(userSolveLogsRef, where("userId", "==", userId), orderBy("solvedAt", "desc"))
-        const userLogsSnapshot = await getDocs(userLogsQuery)
-
-        addDebugLog(`user_solve_logs에서 ${userLogsSnapshot.size}개 문서 발견`)
-
-        userLogsSnapshot.forEach((doc: any) => {
-          const data = doc.data()
-
-          const challenge: SolvedChallenge = {
-            id: data.challengeId || data.problemId || doc.id,
-            title: data.challengeTitle || data.problemTitle || data.title || `문제 #${doc.id.substring(0, 8)}`,
-            category: data.category || (data.type === "wargame" ? "기타" : "CTF"),
-            difficulty: data.difficulty || (data.level ? `레벨 ${data.level}` : "중급"),
-            points: data.points || 0,
-            solvedAt: data.solvedAt || data.timestamp || Timestamp.now(),
-            type: data.type === "wargame" ? "wargame" : "ctf",
-            contestId: data.contestId,
-            contestTitle: data.contestTitle,
-          }
-
-          allChallenges.push(challenge)
-
-          if (data.type === "wargame") {
-            wargameCount++
-          } else {
-            ctfCount++
-          }
-        })
-      } catch (error) {
-        addDebugLog(`user_solve_logs 조회 오류: ${error}`)
-      }
-
-      // 2. wargame_solve_logs 컬렉션 조회
-      addDebugLog("2. wargame_solve_logs 컬렉션 조회 중...")
+      // 1. wargame_solve_logs 컬렉션 조회 (우선 순위 1)
+      addDebugLog("1. wargame_solve_logs 컬렉션 조회 중...")
       try {
         const wargameSolveLogsRef = collection(db, "wargame_solve_logs")
-        const wargameLogsQuery = query(wargameSolveLogsRef, where("userId", "==", userId), orderBy("solvedAt", "desc"))
+        const wargameLogsQuery = query(wargameSolveLogsRef, where("userId", "==", userId))
         const wargameLogsSnapshot = await getDocs(wargameLogsQuery)
 
         addDebugLog(`wargame_solve_logs에서 ${wargameLogsSnapshot.size}개 문서 발견`)
@@ -376,7 +340,7 @@ export default function MyPage() {
               category: data.category || "기타",
               difficulty: data.level ? `레벨 ${data.level}` : data.difficulty || "중급",
               points: data.points || 0,
-              solvedAt: data.solvedAt || Timestamp.now(),
+              solvedAt: data.solvedAt,
               type: "wargame",
             })
             wargameCount++
@@ -386,11 +350,11 @@ export default function MyPage() {
         addDebugLog(`wargame_solve_logs 조회 오류: ${error}`)
       }
 
-      // 3. ctf_solve_logs 컬렉션 조회
-      addDebugLog("3. ctf_solve_logs 컬렉션 조회 중...")
+      // 2. ctf_solve_logs 컬렉션 조회 (우선 순위 2)
+      addDebugLog("2. ctf_solve_logs 컬렉션 조회 중...")
       try {
         const ctfSolveLogsRef = collection(db, "ctf_solve_logs")
-        const ctfLogsQuery = query(ctfSolveLogsRef, where("userId", "==", userId), orderBy("solvedAt", "desc"))
+        const ctfLogsQuery = query(ctfSolveLogsRef, where("userId", "==", userId))
         const ctfLogsSnapshot = await getDocs(ctfLogsQuery)
 
         addDebugLog(`ctf_solve_logs에서 ${ctfLogsSnapshot.size}개 문서 발견`)
@@ -406,7 +370,7 @@ export default function MyPage() {
               category: data.category || "CTF",
               difficulty: data.difficulty || "중급",
               points: data.points || 0,
-              solvedAt: data.solvedAt || Timestamp.now(),
+              solvedAt: data.solvedAt,
               type: "ctf",
               contestId: data.contestId,
               contestTitle: data.contestTitle,
@@ -416,6 +380,45 @@ export default function MyPage() {
         })
       } catch (error) {
         addDebugLog(`ctf_solve_logs 조회 오류: ${error}`)
+      }
+
+      // 3. user_solve_logs 컬렉션 조회 (우선 순위 3 - 보조 소스)
+      addDebugLog("3. user_solve_logs 컬렉션 조회 중...")
+      try {
+        const userSolveLogsRef = collection(db, "user_solve_logs")
+        const userLogsQuery = query(userSolveLogsRef, where("userId", "==", userId))
+        const userLogsSnapshot = await getDocs(userLogsQuery)
+
+        addDebugLog(`user_solve_logs에서 ${userLogsSnapshot.size}개 문서 발견`)
+
+        userLogsSnapshot.forEach((doc: any) => {
+          const data = doc.data()
+          const challengeId = data.challengeId || data.problemId || doc.id
+
+          if (!allChallenges.some((c) => c.id === challengeId)) {
+            const challenge: SolvedChallenge = {
+              id: challengeId,
+              title: data.challengeTitle || data.problemTitle || data.title || `문제 #${doc.id.substring(0, 8)}`,
+              category: data.category || (data.type === "wargame" ? "기타" : "CTF"),
+              difficulty: data.difficulty || (data.level ? `레벨 ${data.level}` : "중급"),
+              points: data.points || 0,
+              solvedAt: data.solvedAt || data.timestamp,
+              type: data.type === "wargame" ? "wargame" : "ctf",
+              contestId: data.contestId,
+              contestTitle: data.contestTitle,
+            }
+
+            allChallenges.push(challenge)
+
+            if (data.type === "wargame") {
+              wargameCount++
+            } else {
+              ctfCount++
+            }
+          }
+        })
+      } catch (error) {
+        addDebugLog(`user_solve_logs 조회 오류: ${error}`)
       }
 
       // 4. 워게임 문제에서 직접 solvedBy 확인
@@ -431,7 +434,7 @@ export default function MyPage() {
 
             if (!allChallenges.some((c) => c.id === challengeId)) {
               // 해결 시간 찾기 (solvedTimes 배열에서)
-              let solvedAt = Timestamp.now()
+              let solvedAt: Timestamp | undefined = undefined
               if (data.solvedTimes && Array.isArray(data.solvedTimes)) {
                 const userSolveTime = data.solvedTimes.find((st: any) => st.userId === userId)
                 if (userSolveTime && userSolveTime.timestamp) {
@@ -470,7 +473,7 @@ export default function MyPage() {
             // 이미 추가된 문제인지 확인
             if (!allChallenges.some((c) => c.id === problemId)) {
               // 해결 시간 찾기
-              let solvedAt = Timestamp.now()
+              let solvedAt: Timestamp | undefined = undefined
               if (data.solvedTimes && Array.isArray(data.solvedTimes)) {
                 const userSolveTime = data.solvedTimes.find((st: any) => st.userId === userId)
                 if (userSolveTime && userSolveTime.timestamp) {
@@ -533,7 +536,7 @@ export default function MyPage() {
                   category: data.category || "기타",
                   difficulty: data.level ? `레벨 ${data.level}` : data.difficulty || "중급",
                   points: calculatePointsByLevel(data.level || 1),
-                  solvedAt: Timestamp.now(), // 정확한 시간을 알 수 없으므로 현재 시간 사용
+                  solvedAt: undefined, // 정확한 시간을 알 수 없으므로 undefined 사용
                   type: "wargame",
                 })
                 wargameCount++
@@ -550,7 +553,7 @@ export default function MyPage() {
                     category: data.category || "CTF",
                     difficulty: data.difficulty || "중급",
                     points: data.points || 0,
-                    solvedAt: Timestamp.now(),
+                    solvedAt: undefined,
                     type: "ctf",
                     contestId: data.contestId,
                   })
@@ -578,8 +581,8 @@ export default function MyPage() {
 
       // 시간순 정렬
       uniqueChallenges.sort((a, b) => {
-        const dateA = getTimestampDate(a.solvedAt)
-        const dateB = getTimestampDate(b.solvedAt)
+        const dateA = a.solvedAt ? getTimestampDate(a.solvedAt) : new Date(0)
+        const dateB = b.solvedAt ? getTimestampDate(b.solvedAt) : new Date(0)
         return dateB.getTime() - dateA.getTime()
       })
 
@@ -1333,10 +1336,14 @@ export default function MyPage() {
                                     <p className="font-medium text-foreground">{challenge.points} 점</p>
                                     <div className="text-xs text-muted-foreground">
                                       <p className="font-medium">
-                                        {formatRelativeTime(getTimestampDate(challenge.solvedAt))}
+                                        {challenge.solvedAt
+                                          ? formatRelativeTime(getTimestampDate(challenge.solvedAt))
+                                          : "날짜 정보 없음"}
                                       </p>
                                       <p className="text-[10px] opacity-75">
-                                        {formatDateTime(getTimestampDate(challenge.solvedAt))}
+                                        {challenge.solvedAt
+                                          ? formatDateTime(getTimestampDate(challenge.solvedAt))
+                                          : "-"}
                                       </p>
                                     </div>
                                   </div>
@@ -1597,10 +1604,14 @@ export default function MyPage() {
                                       <div className="flex items-center gap-2">
                                         <Clock className="h-3.5 w-3.5" />
                                         <span className="font-medium">
-                                          {formatRelativeTime(getTimestampDate(challenge.solvedAt))}
+                                          {challenge.solvedAt
+                                            ? formatRelativeTime(getTimestampDate(challenge.solvedAt))
+                                            : "날짜 정보 없음"}
                                         </span>
                                         <span className="text-xs opacity-75">
-                                          ({formatDateTime(getTimestampDate(challenge.solvedAt))})
+                                          ({challenge.solvedAt
+                                            ? formatDateTime(getTimestampDate(challenge.solvedAt))
+                                            : "-"})
                                         </span>
                                       </div>
                                     </div>
