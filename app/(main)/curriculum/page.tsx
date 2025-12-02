@@ -289,7 +289,7 @@ export default function CurriculumPage() {
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-repeat opacity-40 pointer-events-none" />
       <Navbar />
       <main className="flex-1 relative z-10">
-        {/* 배너 섹션 */}\
+        {/* 배너 섹션 */}
         {banners.length > 0 && (
           <div className="container mx-auto px-4 md:px-6 pt-6">
             <div className="relative">

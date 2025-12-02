@@ -270,6 +270,9 @@ export default function RankingPage() {
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || (newPage > currentPage && !hasMore)) return
     fetchUsersData(newPage)
+    setTimeout(() => {
+      window.scrollTo(0, 0)
+    }, 100)
   }
 
   // 검색 필터링
