@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      // Allow creation only by the user themselves
+      allow create: if isAuthenticated() && isOwner(userId);
+      
+      // Allow updates by owner, BUT prevent modifying sensitive fields
+      // 'role' and score related fields are strictly forbidden for non-admins
+      allow update: if isAuthenticated() && isOwner(userId) 
+                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'points', 'wargameScore', 'solvedWargameProblems']));
+                    
+      // Admins can update anything
+      allow write: if isAdmin();
+    }
+    
+    // Wargame Challenges
+    match /wargame_challenges/{challengeId} {
+      allow read: if true; // Publicly readable
+      allow write: if isAdmin(); // Only admins can create/edit challenges
+    }
+    
+    // Solve Logs
+    match /wargame_solve_logs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // Currently needed for client-side submission
+      allow update, delete: if isAdmin();
+    }
+    
+    match /user_solve_logs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // Currently needed for client-side submission
+      allow update, delete: if isAdmin();
+    }
+    
+    // Other collections (default deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

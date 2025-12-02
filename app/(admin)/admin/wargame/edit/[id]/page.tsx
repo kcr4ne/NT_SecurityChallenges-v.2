@@ -36,7 +36,7 @@ export default function EditChallengePage({ params }: { params: Promise<{ id: st
   const [level, setLevel] = useState(5)
   const [port, setPort] = useState("")
   const [flag, setFlag] = useState("")
-  const [fileUrls, setFileUrls] = useState<string[]>([])
+  const [fileUrls, setFileUrls] = useState<Array<string | { name: string; url: string }>>([])
   const [newFileUrl, setNewFileUrl] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -204,7 +204,15 @@ export default function EditChallengePage({ params }: { params: Promise<{ id: st
         level: Number(level),
         points: calculatedPoints,
         flag,
-        files: [...fileUrls.map((url) => ({ name: url.split("/").pop() || "file", url })), ...uploadedFiles],
+        files: [
+          ...fileUrls.map((file) => {
+            if (typeof file === "string") {
+              return { name: file.split("/").pop() || "file", url: file }
+            }
+            return file
+          }),
+          ...uploadedFiles,
+        ],
         additionalResources: Array.isArray(additionalResources) ? additionalResources : [],
         updatedAt: serverTimestamp(),
       }
@@ -372,6 +380,58 @@ export default function EditChallengePage({ params }: { params: Promise<{ id: st
 
                   <Card>
                     <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Code className="h-5 w-5 text-primary" />
+                        점수 산정 기준
+                      </CardTitle>
+                      <CardDescription>레벨에 따른 점수 자동 계산 방식입니다.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="space-y-2">
+                            <p className="font-medium text-foreground">초급 (Level 1-3)</p>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                              <li>Lv.1 : 100점</li>
+                              <li>Lv.2 : 150점</li>
+                              <li>Lv.3 : 200점</li>
+                            </ul>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="font-medium text-foreground">중급 (Level 4-6)</p>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                              <li>Lv.4 : 250점</li>
+                              <li>Lv.5 : 300점</li>
+                              <li>Lv.6 : 400점</li>
+                            </ul>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="font-medium text-foreground">고급 (Level 7-9)</p>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                              <li>Lv.7 : 500점</li>
+                              <li>Lv.8 : 600점</li>
+                              <li>Lv.9 : 800점</li>
+                            </ul>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="font-medium text-foreground">최상 (Level 10)</p>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                              <li>Lv.10 : 1000점</li>
+                            </ul>
+                          </div>
+                        </div>
+                        <Alert className="bg-muted/50 border-none">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription className="text-xs text-muted-foreground">
+                            난이도(레벨)를 선택하면 위 기준에 따라 점수가 자동으로 설정됩니다.
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
                       <CardTitle>파일 업로드</CardTitle>
                       <CardDescription>문제에 필요한 파일을 업로드하거나 URL을 추가하세요.</CardDescription>
                     </CardHeader>
@@ -391,24 +451,29 @@ export default function EditChallengePage({ params }: { params: Promise<{ id: st
                         <div className="space-y-2">
                           <Label>기존 파일 URL</Label>
                           <div className="space-y-2">
-                            {fileUrls.map((url, index) => (
-                              <div key={index} className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
-                                <ExternalLink className="h-4 w-4 text-blue-500" />
-                                <div className="flex-1">
-                                  <p className="text-sm truncate">{url}</p>
+                            {fileUrls.map((file, index) => {
+                              const fileUrl = typeof file === "string" ? file : file.url
+                              const fileName = typeof file === "string" ? file : file.name
+                              return (
+                                <div key={index} className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                                  <ExternalLink className="h-4 w-4 text-blue-500" />
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium">{fileName}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{fileUrl}</p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveFileUrl(index)}
+                                    disabled={isSubmitting}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveFileUrl(index)}
-                                  disabled={isSubmitting}
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
+                              )
+                            })}
                           </div>
                         </div>
                       )}

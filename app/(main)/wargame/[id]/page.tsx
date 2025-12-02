@@ -319,96 +319,50 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
     const timeoutId = setTimeout(() => controller.abort(), 15000)
 
     try {
-      const challengeRef = doc(db, "wargame_challenges", challenge!.id)
-      const challengeSnap = await getDoc(challengeRef)
+      if (!user) throw new Error("로그인이 필요합니다.")
 
-      if (!challengeSnap.exists()) {
-        throw new Error("문제를 찾을 수 없습니다")
-      }
+      const idToken = await user.getIdToken()
+      if (!idToken) throw new Error("인증 토큰을 가져올 수 없습니다.")
 
-      const freshChallengeData = challengeSnap.data()
-      const correctFlag = freshChallengeData.flag
-
-      if (flag.trim().toLowerCase() !== correctFlag.trim().toLowerCase()) {
-        throw new Error("오답입니다")
-      }
-
-      if (freshChallengeData.solvedBy && freshChallengeData.solvedBy.includes(user!.uid)) {
-        throw new Error("이미 해결한 문제입니다")
-      }
-
-      const points = calculatePointsByLevel(challenge!.level)
-
-      const batch = writeBatch(db)
-
-      // 챌린지 업데이트
-      batch.update(challengeRef, {
-        solvedCount: increment(1),
-        solvedBy: arrayUnion(user!.uid),
-      })
-
-      // 사용자 정보 업데이트
-      const userRef = doc(db, "users", user!.uid)
-      batch.set(
-        userRef,
-        {
-          points: increment(points),
-          wargameScore: increment(points),
-          solvedWargameProblems: arrayUnion(challenge!.id),
+      const response = await fetch("/api/wargame/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`,
         },
-        { merge: true },
-      )
-
-      // 해결 로그 추가
-      const solveLogRef = doc(collection(db, "wargame_solve_logs"))
-      batch.set(solveLogRef, {
-        userId: user!.uid,
-        username: userProfile?.username || user!.displayName || "사용자",
-        photoURL: user!.photoURL,
-        challengeId: challenge!.id,
-        challengeTitle: challenge!.title,
-        category: challenge!.category,
-        level: challenge!.level,
-        points: points,
-        solvedAt: serverTimestamp(),
+        body: JSON.stringify({
+          challengeId: challenge!.id,
+          flag: flag,
+        }),
+        signal: controller.signal,
       })
 
-      // 사용자별 해결 로그 추가
-      const userSolveLogRef = doc(db, "user_solve_logs", `${user!.uid}_${challenge!.id}`)
-      batch.set(userSolveLogRef, {
-        userId: user!.uid,
-        username: userProfile?.username || user!.displayName || "사용자",
-        challengeId: challenge!.id,
-        challengeTitle: challenge!.title,
-        type: "wargame",
-        category: challenge!.category,
-        level: challenge!.level,
-        points: points,
-        solvedAt: serverTimestamp(),
-      })
-
-      await batch.commit()
       clearTimeout(timeoutId)
 
-      return { success: true, points }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "서버 오류가 발생했습니다.")
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        if (result.message === "Incorrect flag") {
+          throw new Error("오답입니다")
+        } else if (result.message === "Already solved") {
+          throw new Error("이미 해결한 문제입니다")
+        } else {
+          throw new Error(result.message || "제출 실패")
+        }
+      }
+
+      return { success: true, points: result.points }
     } catch (error: any) {
       clearTimeout(timeoutId)
       console.error("제출 오류:", error)
 
       if (controller.signal.aborted) {
         throw new Error("요청 시간 초과")
-      }
-
-      if (error.code === "permission-denied") {
-        throw new Error("권한이 없습니다. 로그인 상태를 확인해주세요.")
-      }
-
-      if (error.code === "unavailable") {
-        throw new Error("서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.")
-      }
-
-      if (error.code === "not-found") {
-        throw new Error("문제를 찾을 수 없습니다.")
       }
 
       throw error

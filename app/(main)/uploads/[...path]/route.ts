@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const resolvedPath = path.resolve(filePath)
     const resolvedUploadsDir = path.resolve(uploadsDir)
 
-    if (!resolvedPath.startsWith(resolvedUploadsDir)) {
+    if (!resolvedPath.startsWith(resolvedUploadsDir + path.sep)) {
       console.error("Path traversal attempt detected:", resolvedPath)
       return new NextResponse("Access denied", { status: 403 })
     }

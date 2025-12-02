@@ -170,7 +170,13 @@ export function FirebaseFileUploader({
 
         const fileName = `${Date.now()}_${file.name}`
         const storageRef = ref(storage, `${folder}/${fileName}`)
-        const uploadTask = uploadBytesResumable(storageRef, file)
+        const metadata = {
+          contentDisposition: `attachment; filename="${file.name}"`,
+          customMetadata: {
+            originalName: file.name,
+          },
+        }
+        const uploadTask = uploadBytesResumable(storageRef, file, metadata)
 
         return new Promise<FileUploadItem>((resolve, reject) => {
           uploadTask.on(
@@ -316,9 +322,8 @@ export function FirebaseFileUploader({
 
       {/* 파일 업로드 영역 */}
       <Card
-        className={`border-2 border-dashed transition-colors ${
-          disabled ? "border-gray-300 bg-gray-50" : "border-gray-300 hover:border-gray-400 cursor-pointer"
-        }`}
+        className={`border-2 border-dashed transition-colors ${disabled ? "border-gray-300 bg-gray-50" : "border-gray-300 hover:border-gray-400 cursor-pointer"
+          }`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={() => !disabled && fileInputRef.current?.click()}

@@ -364,6 +364,58 @@ export default function CreateChallengePage() {
 
                 <Card>
                   <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="h-5 w-5 text-primary" />
+                      점수 산정 기준
+                    </CardTitle>
+                    <CardDescription>레벨에 따른 점수 자동 계산 방식입니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-2">
+                          <p className="font-medium text-foreground">초급 (Level 1-3)</p>
+                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                            <li>Lv.1 : 100점</li>
+                            <li>Lv.2 : 150점</li>
+                            <li>Lv.3 : 200점</li>
+                          </ul>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="font-medium text-foreground">중급 (Level 4-6)</p>
+                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                            <li>Lv.4 : 250점</li>
+                            <li>Lv.5 : 300점</li>
+                            <li>Lv.6 : 400점</li>
+                          </ul>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="font-medium text-foreground">고급 (Level 7-9)</p>
+                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                            <li>Lv.7 : 500점</li>
+                            <li>Lv.8 : 600점</li>
+                            <li>Lv.9 : 800점</li>
+                          </ul>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="font-medium text-foreground">최상 (Level 10)</p>
+                          <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                            <li>Lv.10 : 1000점</li>
+                          </ul>
+                        </div>
+                      </div>
+                      <Alert className="bg-muted/50 border-none">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-xs text-muted-foreground">
+                          난이도(레벨)를 선택하면 위 기준에 따라 점수가 자동으로 설정됩니다.
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
                     <CardTitle>파일 업로드</CardTitle>
                     <CardDescription>
                       문제에 필요한 파일을 업로드하세요. (선택사항)

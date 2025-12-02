@@ -157,13 +157,8 @@ export const parseMarkdown = (markdown: string): string => {
   // 15. 단락 처리
   html = processParagraphs(html)
 
-  // 16. 코드 블록 복원
-  codeBlocks.forEach((block, index) => {
-    html = html.replace(`__CODE_BLOCK_${index}__`, block)
-  })
-
-  // 17. HTML 정화
-  return DOMPurify.sanitize(html, {
+  // 16. HTML 정화 (코드 블록 복원 전에 수행하여 코드 블록 내의 onclick 보존)
+  const sanitizedHtml = DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
       "p",
       "br",
@@ -200,7 +195,6 @@ export const parseMarkdown = (markdown: string): string => {
       "input",
       "svg",
       "path",
-      "button",
       "circle",
     ],
     ALLOWED_ATTR: [
@@ -214,8 +208,6 @@ export const parseMarkdown = (markdown: string): string => {
       "type",
       "checked",
       "disabled",
-      "onclick",
-      "data-code",
       "fill",
       "stroke",
       "viewBox",
@@ -229,6 +221,14 @@ export const parseMarkdown = (markdown: string): string => {
       "r",
     ],
   })
+
+  // 17. 코드 블록 복원 (정화된 HTML에 신뢰할 수 있는 코드 블록 삽입)
+  let finalHtml = sanitizedHtml
+  codeBlocks.forEach((block, index) => {
+    finalHtml = finalHtml.replace(`__CODE_BLOCK_${index}__`, block)
+  })
+
+  return finalHtml
 }
 
 // 언어별 설정
