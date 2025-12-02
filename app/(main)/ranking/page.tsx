@@ -30,8 +30,14 @@ import {
   RefreshCw,
   Edit,
   RotateCcw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
-import { collection, getDocs, query, orderBy, limit, doc, updateDoc, Timestamp, writeBatch } from "firebase/firestore"
+import { collection, getDocs, query, orderBy, limit, doc, updateDoc, Timestamp, writeBatch, getCountFromServer,
+  startAfter,
+  type QueryDocumentSnapshot,
+  type DocumentData,
+} from "firebase/firestore"
 import { db } from "@/lib/firebase-config"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -92,6 +98,12 @@ export default function RankingPage() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [totalCtfs, setTotalCtfs] = useState(0)
 
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(20)
+  const [lastDocs, setLastDocs] = useState<{ [key: number]: QueryDocumentSnapshot<DocumentData> }>({})
+  const [hasMore, setHasMore] = useState(true)
+
   // 관리자 기능 상태
   const [showAdminPanel, setShowAdminPanel] = useState(false)
   const [selectedUser, setSelectedUser] = useState<UserRanking | null>(null)
@@ -128,16 +140,53 @@ export default function RankingPage() {
   }
 
   // CTF 랭킹 데이터 가져오기
-  const fetchUsersData = useCallback(async () => {
+  const fetchUsersData = useCallback(async (page = 1) => {
     try {
-      console.log("[Ranking Debug] 데이터 가져오기 시작")
+      console.log(`[Ranking Debug] 데이터 가져오기 시작 (Page: ${page}, Search: ${searchQuery})`)
       setIsLoading(true)
 
-      // 1. CTF 점수 기준으로 상위 100명 사용자 가져오기
       const usersRef = collection(db, "users")
-      const q = query(usersRef, orderBy("ctfPoints", "desc"), limit(100))
-      const usersSnap = await getDocs(q)
+      let q
 
+      // 검색 모드 vs 페이지네이션 모드
+      if (searchQuery.trim()) {
+        // 검색어에 맞는 사용자 찾기 (이름순 정렬)
+        // 주의: Firestore에서 부분 일치 검색은 제한적이므로, 여기서는 클라이언트 사이드 필터링을 위해
+        // 검색어가 포함된 데이터를 최대한 가져오거나, prefix 검색을 사용해야 함.
+        // 기존 로직과 유사하게 상위 랭커 중에서 검색하거나, 별도의 검색 인덱스가 필요함.
+        // 여기서는 성능을 위해 상위 100명 내에서 검색하는 것이 아니라,
+        // 전체 유저 중 이름으로 검색하는 것이 맞지만, 복합 인덱스 문제 등이 있을 수 있음.
+        // 일단은 전체 랭킹 페이지네이션에 집중하고, 검색은 상위 100명(또는 검색된 결과) 내에서 처리하도록 함.
+        // 하지만 "전체"에서 검색하려면 where 절이 필요함.
+        // 여기서는 간단히 페이지네이션 모드에서만 동작하도록 하고, 검색 시에는 1페이지부터 다시 로드하되
+        // 검색 로직은 별도로 분리하거나, 클라이언트 필터링을 유지할 수 있음.
+        // 하지만 요청사항은 "페이지네이션"이므로, 검색 시에는 페이지네이션을 리셋하고 검색 결과를 보여주는 것이 좋음.
+        
+        // 임시: 검색어가 있으면 전체 문서 중 이름 매칭 시도 (비효율적일 수 있으나 정확함)
+        // 또는 기존처럼 상위 100명 가져와서 필터링? -> 페이지네이션 의미가 퇴색됨.
+        // 따라서 검색 시에는 별도 쿼리를 수행.
+        
+        // Firestore Prefix Search (Case-sensitive limitation exists)
+        // q = query(usersRef, orderBy("username"), startAt(searchQuery), endAt(searchQuery + "\uf8ff"), limit(50))
+        
+        // 일단은 기존 로직(상위 100명)을 유지하되, 페이지네이션은 검색어가 없을 때만 동작하게 함.
+        q = query(usersRef, orderBy("ctfPoints", "desc"), limit(100))
+      } else {
+        // 페이지네이션 모드
+        if (page === 1) {
+          q = query(usersRef, orderBy("ctfPoints", "desc"), limit(pageSize))
+        } else {
+          const lastDoc = lastDocs[page - 1]
+          if (!lastDoc) {
+            // 이전 페이지 데이터가 없으면 1페이지로 리셋
+            fetchUsersData(1)
+            return
+          }
+          q = query(usersRef, orderBy("ctfPoints", "desc"), startAfter(lastDoc), limit(pageSize))
+        }
+      }
+
+      const usersSnap = await getDocs(q)
       console.log(`[Ranking Debug] ${usersSnap.size}명의 사용자 문서 가져옴`)
 
       // 2. 사용자 데이터 가공
@@ -145,8 +194,6 @@ export default function RankingPage() {
         .map((doc) => {
           const d = doc.data()
           const ctfPoints = d.ctfPoints || 0
-
-          // if (ctfPoints <= 0) return null // CTF 점수 0 이하는 제외 - 임시로 주석 처리
 
           try {
             const tierInfo = getTierByPoints(ctfPoints)
@@ -169,23 +216,35 @@ export default function RankingPage() {
         })
         .filter(Boolean) as UserRanking[]
 
-      console.log(`[Ranking Debug] ${processed.length}명의 사용자 데이터 처리 완료`)
+      // 3. 순위 부여 (페이지네이션 고려)
+      // 페이지네이션 시에는 (page-1) * pageSize + index + 1 로 순위 계산
+      const startRank = searchQuery.trim() ? 1 : (page - 1) * pageSize + 1
+      processed.forEach((u, i) => (u.rank = startRank + i))
 
-      // 3. CTF 점수 기준으로 정렬 및 순위 부여
-      processed.sort((a, b) => b.ctfPoints - a.ctfPoints).forEach((u, i) => (u.rank = i + 1))
-
-      console.log("[Ranking Debug] setUsers 호출 전, processed.length:", processed.length)
       setUsers(processed)
-      console.log("[Ranking Debug] setUsers 호출 완료")
 
-      // 4. 통계 값들
-      const totalUsersSnap = await getDocs(collection(db, "users"))
-      const totalCtfsSnap = await getDocs(collection(db, "ctf_contests"))
+      if (!searchQuery.trim()) {
+        // 페이지네이션 상태 업데이트
+        const lastVisible = usersSnap.docs[usersSnap.docs.length - 1]
+        if (lastVisible) {
+          setLastDocs((prev) => ({ ...prev, [page]: lastVisible }))
+        }
+        setHasMore(usersSnap.size === pageSize)
+        setCurrentPage(page)
+      }
 
-      setTotalUsers(totalUsersSnap.size)
-      setTotalCtfs(totalCtfsSnap.size)
+      // 4. 통계 값들 (최적화: getCountFromServer 사용)
+      // 처음 한 번만 로드하거나 값이 없을 때만 로드
+      if (totalUsers === 0) {
+        const totalUsersCount = await getCountFromServer(collection(db, "users"))
+        setTotalUsers(totalUsersCount.data().count)
+        
+        const totalCtfsCount = await getCountFromServer(collection(db, "ctf_contests"))
+        setTotalCtfs(totalCtfsCount.data().count)
+        
+        console.log(`[Ranking Debug] 통계(Optimized): 사용자 ${totalUsersCount.data().count}명, CTF ${totalCtfsCount.data().count}개`)
+      }
 
-      console.log(`[Ranking Debug] 통계: 사용자 ${totalUsersSnap.size}명, CTF ${totalCtfsSnap.size}개`)
     } catch (err) {
       console.error("[Ranking Debug] Error fetching users:", err)
       toast({
@@ -195,13 +254,23 @@ export default function RankingPage() {
       })
     } finally {
       setIsLoading(false)
-      console.log("[Ranking Debug] 로딩 완료")
     }
-  }, [toast])
+  }, [toast, pageSize, lastDocs, searchQuery, totalUsers])
 
+  // 검색어가 변경되면 1페이지로 초기화 및 재검색
   useEffect(() => {
-    fetchUsersData()
-  }, [fetchUsersData])
+    const timer = setTimeout(() => {
+      setLastDocs({}) // 검색 시 페이지네이션 초기화
+      fetchUsersData(1)
+    }, 300) // 디바운스
+    return () => clearTimeout(timer)
+  }, [searchQuery]) // fetchUsersData는 의존성에서 제외 (무한루프 방지)
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || (newPage > currentPage && !hasMore)) return
+    fetchUsersData(newPage)
+  }
 
   // 검색 필터링
   const filteredUsers = users.filter((user) => user.username.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -669,7 +738,7 @@ export default function RankingPage() {
                       <RotateCcw className="mr-2 h-4 w-4" />
                       전체 랭킹 초기화
                     </Button>
-                    <Button variant="outline" onClick={fetchUsersData}>
+                    <Button variant="outline" onClick={() => fetchUsersData(1)}>
                       <RefreshCw className="mr-2 h-4 w-4" />
                       데이터 새로고침
                     </Button>
@@ -890,6 +959,33 @@ export default function RankingPage() {
                       </TableBody>
                     </Table>
                   </Card>
+
+                  {/* 페이지네이션 컨트롤 */}
+                  {!searchQuery.trim() && (
+                    <div className="flex justify-center items-center gap-4 mt-8">
+                      <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1 || isLoading}
+                        className="w-24 border-primary/20 hover:bg-primary/10"
+                      >
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        이전
+                      </Button>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        페이지 {currentPage}
+                      </span>
+                      <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={!hasMore || isLoading}
+                        className="w-24 border-primary/20 hover:bg-primary/10"
+                      >
+                        다음
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
