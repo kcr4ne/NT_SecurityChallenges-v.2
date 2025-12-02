@@ -439,14 +439,16 @@ export default function CreatorsPage() {
                 viewport={{ once: true }}
               >
                 {/* 글로우 효과 */}
-                <div className="absolute inset-0 w-48 h-48 md:w-56 md:h-56 rounded-full bg-gradient-to-r from-primary/30 to-secondary/30 blur-2xl animate-pulse"></div>
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 md:w-52 md:h-52 rounded-full bg-gradient-to-r from-primary/30 to-secondary/30 blur-2xl animate-pulse"></div>
 
                 {/* 회전하는 링 */}
-                <motion.div
-                  className="absolute inset-0 w-48 h-48 md:w-56 md:h-56 rounded-full border-2 border-dashed border-primary/30"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                />
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 md:w-52 md:h-52">
+                  <motion.div
+                    className="w-full h-full rounded-full border-2 border-dashed border-primary/30"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                  />
+                </div>
 
                 <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-primary/50 shadow-2xl">
                   <Image
