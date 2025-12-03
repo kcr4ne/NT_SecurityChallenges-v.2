@@ -211,23 +211,25 @@ export function Navbar() {
                     hoveredItem === item.title && "text-foreground bg-accent/50",
                   )}
                 >
-                  <item.icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                  <span>{item.title}</span>
-                  <ChevronDown
-                    className={cn(
-                      "h-3 w-3 transition-transform duration-300",
-                      activeDropdown === item.title ? "rotate-180" : "group-hover:rotate-180",
-                    )}
-                  />
-
                   {/* Hover effect background */}
                   <div
                     className={cn(
-                      "absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300",
-                      hoveredItem === item.title && "opacity-100",
-                      `bg-gradient-to-r ${item.gradient} bg-opacity-10`,
+                      "absolute inset-0 rounded-xl transition-opacity duration-300",
+                      hoveredItem === item.title ? "opacity-10" : "opacity-0",
+                      `bg-gradient-to-r ${item.gradient}`,
                     )}
                   />
+
+                  <div className="relative z-10 flex items-center gap-2">
+                    <item.icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                    <span>{item.title}</span>
+                    <ChevronDown
+                      className={cn(
+                        "h-3 w-3 transition-transform duration-300",
+                        activeDropdown === item.title ? "rotate-180" : "group-hover:rotate-180",
+                      )}
+                    />
+                  </div>
                 </Link>
 
                 {/* Mega Menu Dropdown */}

@@ -25,9 +25,10 @@ import { motion } from "framer-motion"
 import { useAuth } from "@/lib/auth-context"
 
 // 파일 상단에 다음 import 추가:
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
+import { collection, getDocs, query, orderBy, where, limit } from "firebase/firestore"
 import { db } from "@/lib/firebase-config"
 import type { Banner } from "@/lib/banner-types"
+import type { WargameChallenge } from "@/lib/wargame-types"
 import { BannerSlider } from "@/components/common/banner-slider"
 
 export default function Home() {
@@ -35,6 +36,7 @@ export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null)
   const [scrollY, setScrollY] = useState(0)
   const [banners, setBanners] = useState<Banner[]>([])
+  const [latestChallenges, setLatestChallenges] = useState<WargameChallenge[]>([])
   const { user } = useAuth()
   const [particles, setParticles] = useState<Array<React.CSSProperties>>([])
 
@@ -112,6 +114,31 @@ export default function Home() {
     }
 
     fetchBanners()
+  }, [])
+
+  // 최신 도전 과제 가져오기
+  useEffect(() => {
+    const fetchLatestChallenges = async () => {
+      try {
+        const challengesRef = collection(db, "wargame_challenges")
+        const q = query(challengesRef, orderBy("createdAt", "desc"), limit(3))
+        const querySnapshot = await getDocs(q)
+
+        const challengesData: WargameChallenge[] = []
+        querySnapshot.forEach((doc) => {
+          const data = doc.data() as WargameChallenge
+          challengesData.push({
+            ...data,
+            id: doc.id,
+          })
+        })
+        setLatestChallenges(challengesData)
+      } catch (error) {
+        console.error("Error fetching latest challenges:", error)
+      }
+    }
+
+    fetchLatestChallenges()
   }, [])
 
   // Calculate parallax effect for hero elements
@@ -557,101 +584,72 @@ export default function Home() {
             </motion.div>
 
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                {
-                  title: "웹 해킹",
-                  category: "웹 해킹",
-                  difficulty: "중급",
-                  points: 300,
-                  icon: Code,
-                  tags: ["XSS", "CSRF", "SQL Injection"],
-                  color: "from-red-600/80 to-red-400/80",
-                  delay: 0,
-                  href: "/wargame",
-                },
-                {
-                  title: "시스템 해킹",
-                  category: "시스템 해킹",
-                  difficulty: "초급",
-                  points: 200,
-                  icon: Cpu,
-                  tags: ["Assembly", "Debugging", "Binary Analysis"],
-                  color: "from-blue-600/80 to-blue-400/80",
-                  delay: 0.1,
-                  href: "/wargame",
-                },
-                {
-                  title: "암호학",
-                  category: "암호학",
-                  difficulty: "고급",
-                  points: 500,
-                  icon: Lock,
-                  tags: ["RSA", "AES", "Cryptanalysis"],
-                  color: "from-green-600/80 to-green-400/80",
-                  delay: 0.2,
-                  href: "/wargame",
-                },
-              ].map((challenge, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: challenge.delay }}
-                >
-                  <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-black/50 p-1 shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 backdrop-blur-sm">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                    <div className="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-primary/20 to-transparent blur-md"></div>
-                    </div>
-                    <div className="relative h-full rounded-xl bg-black/80 p-6 backdrop-blur-sm">
-                      <div className="mb-4 flex items-center justify-between">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-primary/20 to-blue-500/20 group-hover:from-primary/30 group-hover:to-blue-500/30 transition-all duration-300">
-                          <challenge.icon className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs border-white/10 bg-black/50 backdrop-blur-sm">
-                            {challenge.difficulty}
-                          </Badge>
-                          <Badge
-                            variant="secondary"
-                            className="text-xs bg-gradient-to-r from-primary/20 to-blue-500/20 text-white border-0"
-                          >
-                            {challenge.points} 포인트
-                          </Badge>
-                        </div>
+              {latestChallenges.length > 0 ? (
+                latestChallenges.map((challenge, index) => (
+                  <motion.div
+                    key={challenge.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-black/50 p-1 shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 backdrop-blur-sm">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                      <div className="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-primary/20 to-transparent blur-md"></div>
                       </div>
-                      <h3 className="mb-2 text-xl font-bold group-hover:text-primary transition-colors">
-                        {challenge.title}
-                      </h3>
-                      <p className="mb-4 text-sm text-muted-foreground">{challenge.category}</p>
-
-                      <div className="mt-4 flex items-center justify-between">
-                        <div className="flex -space-x-2">
-                          {[...Array(3)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-gradient-to-r from-primary/20 to-blue-500/20"
+                      <div className="relative h-full rounded-xl bg-black/80 p-6 backdrop-blur-sm">
+                        <div className="mb-4 flex items-center justify-between">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-primary/20 to-blue-500/20 group-hover:from-primary/30 group-hover:to-blue-500/30 transition-all duration-300">
+                            {challenge.category === "웹 해킹" ? (
+                              <Code className="h-6 w-6 text-white" />
+                            ) : challenge.category === "시스템 해킹" ? (
+                              <Cpu className="h-6 w-6 text-white" />
+                            ) : challenge.category === "암호학" ? (
+                              <Lock className="h-6 w-6 text-white" />
+                            ) : (
+                              <Shield className="h-6 w-6 text-white" />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs border-white/10 bg-black/50 backdrop-blur-sm">
+                              {challenge.difficulty}
+                            </Badge>
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-gradient-to-r from-primary/20 to-blue-500/20 text-white border-0"
                             >
-                              <span className="text-xs font-bold">{i + 1}</span>
-                            </div>
-                          ))}
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-gradient-to-r from-primary/20 to-blue-500/20">
-                            <span className="text-xs font-bold">+5</span>
+                              {challenge.points} 포인트
+                            </Badge>
                           </div>
                         </div>
-                        <Link
-                          href={challenge.href}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-primary"
-                        >
-                          도전하기
-                          <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                        </Link>
+                        <h3 className="mb-2 text-xl font-bold group-hover:text-primary transition-colors line-clamp-1">
+                          {challenge.title}
+                        </h3>
+                        <p className="mb-4 text-sm text-muted-foreground">{challenge.category}</p>
+
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Users className="h-4 w-4" />
+                            <span>{challenge.solvedCount || 0}명이 해결함</span>
+                          </div>
+                          <Link
+                            href={`/wargame/${challenge.id}`}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-primary"
+                          >
+                            도전하기
+                            <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12 text-muted-foreground">
+                  등록된 최신 도전 과제가 없습니다.
+                </div>
+              )}
             </div>
 
             <motion.div
@@ -722,7 +720,7 @@ export default function Home() {
                       <Link href="/register">
                         <Button
                           size="lg"
-                          className="rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg hover:shadow-white/10"
+                          className="rounded-full bg-white text-black hover:bg-white/90 shadow-lg hover:shadow-white/10"
                         >
                           무료로 시작하기
                           <ArrowRight className="ml-2" />
