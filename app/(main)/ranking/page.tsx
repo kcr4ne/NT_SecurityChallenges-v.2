@@ -1013,6 +1013,56 @@ export default function RankingPage() {
         </section>
       </main>
 
+      {/* 티어 시스템 안내 다이얼로그 */}
+      <Dialog open={showTierInfo} onOpenChange={setShowTierInfo}>
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <Layers className="h-6 w-6 text-primary" />
+              티어 시스템 안내
+            </DialogTitle>
+            <DialogDescription>
+              CTF 포인트에 따라 부여되는 티어와 혜택을 확인하세요.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {TIERS.map((tier) => (
+                <Card key={tier.id} className="border-2 overflow-hidden" style={{ borderColor: `${tier.color}40` }}>
+                  <div className="h-2 w-full" style={{ backgroundColor: tier.color }}></div>
+                  <CardContent className="p-4 flex items-start gap-4">
+                    <div 
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2"
+                      style={{ 
+                        borderColor: `${tier.color}40`,
+                        backgroundColor: `${tier.color}10`,
+                        color: tier.color
+                      }}
+                    >
+                      {getTierIcon(tier.icon)}
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-bold text-lg" style={{ color: tier.color }}>{tier.name}</h4>
+                        <Badge variant="outline" className="text-xs whitespace-nowrap">
+                          {tier.minPoints.toLocaleString()}점+
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{tier.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button onClick={() => setShowTierInfo(false)}>확인</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* 사용자 편집 다이얼로그 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
