@@ -54,6 +54,7 @@ import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { WargameChallenge } from "@/lib/wargame-types"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ActiveUserAvatar } from "@/components/features/user/active-user-avatar"
 
 // 워게임 사용자 타입 정의
 type WargameUser = {
@@ -1294,12 +1295,12 @@ export default function WargamePage() {
                         }}
                         className="relative group"
                       >
-                        <Avatar className="h-10 w-10 border-2 border-emerald-500/30 transition-all duration-200 group-hover:border-emerald-400 shadow-lg">
-                          <AvatarImage src={activeUser.photoURL || "/placeholder.svg"} alt={activeUser.username} />
-                          <AvatarFallback className="bg-gradient-to-r from-gray-700 to-gray-800 text-white text-xs font-semibold">
-                            {activeUser.username?.charAt(0)?.toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
+                        <ActiveUserAvatar
+                          uid={activeUser.uid}
+                          username={activeUser.username}
+                          initialPhotoURL={activeUser.photoURL}
+                          className="h-10 w-10 border-2 border-emerald-500/30 transition-all duration-200 group-hover:border-emerald-400 shadow-lg"
+                        />
 
                         {/* 실시간 활성 표시 */}
                         <motion.div

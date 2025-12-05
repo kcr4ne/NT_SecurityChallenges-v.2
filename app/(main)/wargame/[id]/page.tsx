@@ -226,6 +226,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
   const [writeUps, setWriteUps] = useState<WriteUp[]>([])
   const [difficultyVotes, setDifficultyVotes] = useState<DifficultyVote[]>([])
   const [userDifficultyVote, setUserDifficultyVote] = useState<number | null>(null)
+  const [authorProfile, setAuthorProfile] = useState<any>(null)
 
   // 관리자 여부 확인
   const isAdmin = userProfile?.role === "admin" || userProfile?.email === "mistarcodm@gmail.com"
@@ -421,6 +422,26 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
       fetchChallenge()
     }
   }, [id, router, toast, user])
+
+  // 출제자 정보 가져오기
+  useEffect(() => {
+    if (!challenge?.authorId) return
+
+    const fetchAuthorProfile = async () => {
+      try {
+        const userRef = doc(db, "users", challenge.authorId)
+        const userSnap = await getDoc(userRef)
+
+        if (userSnap.exists()) {
+          setAuthorProfile(userSnap.data())
+        }
+      } catch (error) {
+        console.error("Error fetching author profile:", error)
+      }
+    }
+
+    fetchAuthorProfile()
+  }, [challenge?.authorId])
 
   // 해결자 목록 가져오기 (시간순 정렬로 First Blood 정확히 찾기)
   useEffect(() => {
@@ -1763,7 +1784,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
                     <CardContent>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12 border-2 border-cyan-500/30">
-                          <AvatarImage src={`/avatars/${challenge.authorId}.png`} alt={challenge.author} />
+                          <AvatarImage src={authorProfile?.photoURL || `/avatars/${challenge.authorId}.png`} alt={challenge.author} />
                           <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
                             {challenge.author?.charAt(0)?.toUpperCase() || "A"}
                           </AvatarFallback>
