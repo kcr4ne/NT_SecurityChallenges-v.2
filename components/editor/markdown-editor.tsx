@@ -766,6 +766,8 @@ function MarkdownEditor({
               fontSize: "14px",
               lineHeight: "1.6",
               tabSize: "2",
+              color: "var(--foreground)", // Force foreground color
+              backgroundColor: "var(--background)", // Force background color
             }}
           />
         </TabsContent>
@@ -777,15 +779,16 @@ function MarkdownEditor({
                 <div
                   className="prose prose-lg max-w-none
             prose-headings:text-gray-900 dark:prose-headings:text-white
-            prose-p:text-gray-800 dark:prose-p:text-gray-200
+            prose-p:text-gray-800 dark:prose-p:text-gray-100
             prose-strong:text-gray-900 dark:prose-strong:text-white
             prose-code:text-gray-900 dark:prose-code:text-gray-100
             prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800
             prose-pre:text-gray-900 dark:prose-pre:text-gray-100
             prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300
-            prose-li:text-gray-800 dark:prose-li:text-gray-200
+            prose-li:text-gray-800 dark:prose-li:text-gray-100
             prose-a:text-blue-600 dark:prose-a:text-blue-400
-            prose-table:text-gray-800 dark:prose-table:text-gray-200"
+            prose-table:text-gray-800 dark:prose-table:text-gray-100
+            text-gray-900 dark:text-gray-100"
                   dangerouslySetInnerHTML={{
                     __html: parseMarkdown(value),
                   }}

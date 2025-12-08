@@ -369,7 +369,7 @@ function processParagraphs(html: string): string {
       const trimmed = paragraph.trim()
       if (!trimmed) return ""
 
-      if (trimmed.match(/^<(h[1-6]|ul|ol|blockquote|pre|div|hr|table)/)) {
+      if (trimmed.match(/^<(h[1-6]|ul|ol|blockquote|pre|div|hr|table|p)/)) {
         return trimmed
       }
 

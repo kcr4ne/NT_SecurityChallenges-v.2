@@ -21,8 +21,8 @@ import { db, storage } from "@/lib/firebase-config"
 import dynamic from "next/dynamic"
 
 // 리치 텍스트 에디터 동적 임포트 (SSR 비활성화)
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false })
-import "react-quill/dist/quill.snow.css"
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false })
+import "react-quill-new/dist/quill.snow.css"
 
 export default function CreateChallengePage() {
   const { user, userProfile } = useAuth()

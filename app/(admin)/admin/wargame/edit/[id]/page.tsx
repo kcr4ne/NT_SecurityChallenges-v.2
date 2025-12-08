@@ -157,6 +157,7 @@ export default function EditChallengePage({ params }: { params: Promise<{ id: st
   }
 
   // 추가 리소스 제거 핸들러
+  // 추가 리소스 제거 핸들러
   const handleRemoveResource = (index: number) => {
     setAdditionalResources((prev) => prev.filter((_, i) => i !== index))
   }

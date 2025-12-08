@@ -1259,7 +1259,7 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
                       className="prose dark:prose-invert max-w-none notion-content"
                     >
                       <div
-                        className="prose prose-invert max-w-none
+                        className="prose prose-invert max-w-none text-gray-100
                         prose-headings:text-white prose-headings:font-bold
                         prose-p:text-gray-100 prose-p:leading-relaxed
                         prose-strong:text-white prose-strong:font-bold prose-strong:bg-gradient-to-r prose-strong:from-blue-400 prose-strong:to-purple-400 prose-strong:bg-clip-text prose-strong:text-transparent
