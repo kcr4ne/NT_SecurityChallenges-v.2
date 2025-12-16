@@ -527,8 +527,8 @@ export default function CommunityPage() {
                   className="pl-12 w-80 h-12 bg-gray-900/60 backdrop-blur-xl border border-gray-800/50 rounded-xl shadow-lg focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300 text-white placeholder:text-gray-500"
                 />
               </div>
-              {isAdmin && (
-                <Link href="/admin/community/create">
+              {user && (
+                <Link href={isAdmin ? "/admin/community/create" : "/community/create"}>
                   <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 h-12">
                     <Plus className="h-5 w-5" />글 작성하기
                   </Button>
@@ -763,8 +763,8 @@ export default function CommunityPage() {
                       </div>
                       <p className="text-2xl font-bold text-white mb-2">게시글이 없습니다</p>
                       <p className="text-gray-400 mb-8">첫 번째 게시글을 작성해보세요!</p>
-                      {isAdmin && (
-                        <Link href="/admin/community/create">
+                      {user && (
+                        <Link href={isAdmin ? "/admin/community/create" : "/community/create"}>
                           <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
                             글 작성하기
                           </Button>
