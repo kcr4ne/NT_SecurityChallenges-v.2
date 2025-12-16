@@ -344,22 +344,21 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-12 w-12 rounded-2xl p-0 overflow-hidden border-2 border-border/30 hover:border-primary/50 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="relative h-12 w-12 min-w-[3rem] rounded-2xl p-0 overflow-hidden border-2 border-border/30 hover:border-primary/50 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl aspect-square flex-shrink-0"
                   >
                     <Image
-                      src={user.photoURL || "/placeholder.svg"}
+                      src={userProfile?.photoURL || user.photoURL || "/placeholder.svg"}
                       alt={user.displayName || "사용자"}
-                      width={48}
-                      height={48}
-                      className="h-full w-full object-cover"
-                      style={{ objectPosition: "center" }}
+                      fill
+                      sizes="48px"
+                      className="object-cover"
                       priority
                       onError={(e) => {
                         const target = e.target as HTMLImageElement
                         target.src = "/placeholder.svg"
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 z-10" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -371,7 +370,7 @@ export function Navbar() {
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <Image
-                          src={user.photoURL || "/placeholder.svg"}
+                          src={userProfile?.photoURL || user.photoURL || "/placeholder.svg"}
                           alt={user.displayName || "사용자"}
                           width={40}
                           height={40}
@@ -544,7 +543,7 @@ export function Navbar() {
                     <div className="flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-r from-accent/30 to-accent/10 border border-border/20">
                       <div className="relative">
                         <Image
-                          src={user.photoURL || "/placeholder.svg"}
+                          src={userProfile?.photoURL || user.photoURL || "/placeholder.svg"}
                           alt={user.displayName || "사용자"}
                           width={48}
                           height={48}
