@@ -809,11 +809,6 @@ export default function CommunityPage() {
                                   </div>
                                   <h3 className="font-bold text-lg text-white group-hover:text-cyan-400 transition-colors mb-2 line-clamp-2">
                                     {escapeHtml(post.title)}
-                                    {(post.commentCount || 0) > 0 && (
-                                      <Badge className="ml-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-lg">
-                                        {post.commentCount}
-                                      </Badge>
-                                    )}
                                   </h3>
                                   <div className="flex items-center gap-6 text-sm text-gray-400">
                                     <span className="font-medium hover:text-cyan-400 cursor-pointer transition-colors">
