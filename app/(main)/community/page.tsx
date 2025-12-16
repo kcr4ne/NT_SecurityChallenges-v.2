@@ -727,10 +727,7 @@ export default function CommunityPage() {
                             </span>
                           </div>
                           <div className="flex items-center gap-6 text-sm text-gray-400">
-                            <div className="flex items-center gap-1">
-                              <ThumbsUp className="h-4 w-4 text-orange-500" />
-                              <span className="font-semibold text-orange-400">{post.likeCount}</span>
-                            </div>
+                            {/* Like count removed */}
                             <div className="flex items-center gap-1">
                               <Eye className="h-4 w-4" />
                               <span>{post.viewCount}</span>
@@ -830,10 +827,7 @@ export default function CommunityPage() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-4 text-sm">
-                                <div className="flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-xl border border-red-500/20">
-                                  <ThumbsUp className="h-4 w-4 text-red-400" />
-                                  <span className="font-semibold text-red-400">{post.likeCount || 0}</span>
-                                </div>
+                                {/* Like count removed */}
                                 <div className="flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl border border-cyan-500/20">
                                   <Eye className="h-4 w-4 text-cyan-400" />
                                   <span className="font-semibold text-cyan-400">{post.viewCount || 0}</span>
