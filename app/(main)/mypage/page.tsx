@@ -73,20 +73,10 @@ import Link from "next/link"
 import { followSystem } from "@/utils/follow-system"
 import { FollowListModal } from "@/components/features/user/follow-list-modal"
 
-// 커리큘럼 진도 타입 정의
-type CurriculumProgress = {
-  id: string
-  title: string
-  category: string
-  totalSteps: number
-  completedSteps: number
-  progress: number
-  lastAccessed: Timestamp
-  isCompleted: boolean
-  certificate?: string
-}
 
-// 카테고리별 아이콘 매핑
+
+
+
 const categoryIcons: Record<string, React.ReactNode> = {
   "웹 해킹": <Globe className="h-4 w-4" />,
   "시스템 해킹": <Terminal className="h-4 w-4" />,
@@ -186,13 +176,55 @@ const getTimestampDate = (timestamp: any): Date => {
   return new Date(timestamp)
 }
 
+// 카테고리 통계 계산 함수
+const calculateCategoryStats = (challenges: SolvedChallenge[]) => {
+  const categories: Record<string, number> = {}
+  challenges.forEach((challenge) => {
+    const category = challenge.category || "기타"
+    categories[category] = (categories[category] || 0) + 1
+  })
+  return categories
+}
+
+// 난이도 통계 계산 함수
+const calculateDifficultyStats = (challenges: SolvedChallenge[]) => {
+  const difficulties: Record<string, number> = {
+    초급: 0,
+    중급: 0,
+    고급: 0,
+    대회: 0,
+  }
+
+  challenges.forEach((challenge) => {
+    const diff = challenge.difficulty || ""
+    if (diff.includes("초급") || diff.includes("레벨 1") || diff.includes("레벨 2")) {
+      difficulties["초급"]++
+    } else if (
+      diff.includes("고급") ||
+      diff.includes("레벨 5") ||
+      diff.includes("레벨 6") ||
+      diff.includes("레벨 7") ||
+      diff.includes("레벨 8") ||
+      diff.includes("레벨 9") ||
+      diff.includes("레벨 10")
+    ) {
+      difficulties["고급"]++
+    } else if (diff === "대회") {
+      difficulties["대회"]++
+    } else {
+      difficulties["중급"]++
+    }
+  })
+
+  return difficulties
+}
+
 export default function MyPage() {
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [solvedChallenges, setSolvedChallenges] = useState<SolvedChallenge[]>([])
-  const [curriculumProgress, setCurriculumProgress] = useState<CurriculumProgress[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [wargameCount, setWargameCount] = useState(0)
@@ -212,6 +244,8 @@ export default function MyPage() {
   const [followModalOpen, setFollowModalOpen] = useState(false)
   const [followModalType, setFollowModalType] = useState<"following" | "followers">("following")
 
+
+
   // 현재 사용자가 관리자인지 확인
   const isCurrentUserAdmin = user && (user.email === "admin@example.com" || user.uid === "admin")
 
@@ -221,52 +255,11 @@ export default function MyPage() {
     setDebugInfo((prev: string[]) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`])
   }
 
-  // 커리큘럼 진도 불러오기
-  const fetchCurriculumProgress = async (userId: string) => {
-    try {
-      addDebugLog("커리큘럼 진도 로딩 시작")
 
-      // 사용자의 커리큘럼 진도 조회
-      const progressRef = collection(db, "user_curriculum_progress")
-      const progressQuery = query(progressRef, where("userId", "==", userId))
-      const progressSnapshot = await getDocs(progressQuery)
 
-      const progressData: CurriculumProgress[] = []
 
-      for (const doc of progressSnapshot.docs) {
-        const data = doc.data()
 
-        // 커리큘럼 정보 가져오기
-        const curriculumRef = firebaseDoc(db, "curriculum", data.curriculumId)
-        const curriculumSnap = await firebaseGetDoc(curriculumRef)
 
-        if (curriculumSnap.exists()) {
-          const curriculumData = curriculumSnap.data()
-
-          progressData.push({
-            id: data.curriculumId,
-            title: curriculumData.title || "커리큘럼",
-            category: curriculumData.category || "기타",
-            totalSteps: curriculumData.steps?.length || 0,
-            completedSteps: data.completedSteps || 0,
-            progress: data.progress || 0,
-            lastAccessed: data.lastAccessed || Timestamp.now(),
-            isCompleted: data.isCompleted || false,
-            certificate: data.certificate,
-          })
-        }
-      }
-
-      // 진도순으로 정렬
-      progressData.sort((a, b) => b.progress - a.progress)
-      setCurriculumProgress(progressData)
-
-      addDebugLog(`커리큘럼 진도 ${progressData.length}개 로딩 완료`)
-    } catch (error) {
-      addDebugLog(`커리큘럼 진도 로딩 오류: ${error}`)
-      console.error("Error fetching curriculum progress:", error)
-    }
-  }
 
   // 해결한 문제 불러오기 - 모든 가능한 소스에서 데이터 수집
   const fetchSolvedChallenges = useCallback(async (userId: string, profileData: UserProfile | null) => {
@@ -277,48 +270,7 @@ export default function MyPage() {
       let wargameCount = 0
       let ctfCount = 0
 
-      // 7. 커리큘럼 진도 데이터 수집
-      addDebugLog("7. 커리큘럼 진도 데이터 수집 중...")
-      try {
-        const progressRef = collection(db, "user_curriculum_progress")
-        const progressQuery = query(progressRef, where("userId", "==", userId))
-        const progressSnapshot = await getDocs(progressQuery)
 
-        const progressData: CurriculumProgress[] = []
-
-        for (const doc of progressSnapshot.docs) {
-          const data = doc.data()
-
-          // 커리큘럼 정보 가져오기
-          const curriculumRef = firebaseDoc(db, "curriculum", data.curriculumId)
-          const curriculumSnap = await firebaseGetDoc(curriculumRef)
-
-          if (curriculumSnap.exists()) {
-            const curriculumData = curriculumSnap.data()
-
-            progressData.push({
-              id: data.curriculumId,
-              title: curriculumData.title || "커리큘럼",
-              category: curriculumData.category || "기타",
-              totalSteps: curriculumData.steps?.length || 0,
-              completedSteps: data.completedSteps || 0,
-              progress: data.progress || 0,
-              lastAccessed: data.lastAccessed || Timestamp.now(),
-              isCompleted: data.isCompleted || false,
-              certificate: data.certificate,
-            })
-          }
-        }
-
-        // 진도순으로 정렬
-        progressData.sort((a, b) => b.progress - a.progress)
-        setCurriculumProgress(progressData)
-
-        addDebugLog(`커리큘럼 진도 ${progressData.length}개 수집 완료`)
-      } catch (error) {
-        addDebugLog(`커리큘럼 진도 수집 오류: ${error}`)
-        console.error("Error fetching curriculum progress:", error)
-      }
 
       // 1. wargame_solve_logs 컬렉션 조회 (우선 순위 1)
       addDebugLog("1. wargame_solve_logs 컬렉션 조회 중...")
@@ -589,48 +541,18 @@ export default function MyPage() {
       setSolvedChallenges(uniqueChallenges)
 
       // 통계 계산
-      const categories: Record<string, number> = {}
-      const difficulties: Record<string, number> = {
-        초급: 0,
-        중급: 0,
-        고급: 0,
-        대회: 0,
-      }
+      const calculatedCategories = calculateCategoryStats(uniqueChallenges)
+      setCategoryStats(calculatedCategories)
+      setDifficultyStats(calculateDifficultyStats(uniqueChallenges))
 
-      uniqueChallenges.forEach((challenge) => {
-        categories[challenge.category] = (categories[challenge.category] || 0) + 1
-
-        if (
-          challenge.difficulty.includes("초급") ||
-          challenge.difficulty.includes("레벨 1") ||
-          challenge.difficulty.includes("레벨 2")
-        ) {
-          difficulties["초급"]++
-        } else if (
-          challenge.difficulty.includes("고급") ||
-          challenge.difficulty.includes("레벨 5") ||
-          challenge.difficulty.includes("레벨 6") ||
-          challenge.difficulty.includes("레벨 7") ||
-          challenge.difficulty.includes("레벨 8") ||
-          challenge.difficulty.includes("레벨 9") ||
-          challenge.difficulty.includes("레벨 10")
-        ) {
-          difficulties["고급"]++
-        } else if (challenge.difficulty === "대회") {
-          difficulties["대회"]++
-        } else {
-          difficulties["중급"]++
-        }
-      })
-
-      setCategoryStats(categories)
-      setDifficultyStats(difficulties)
+      // 커리큘럼 진도 불러오기
+      // 커리큘럼 진도 불러오기 (제거됨)
 
       addDebugLog("=== 최종 결과 ===")
       addDebugLog(`총 해결 문제: ${uniqueChallenges.length}`)
       addDebugLog(`워게임: ${wargameCount}`)
       addDebugLog(`CTF: ${ctfCount}`)
-      addDebugLog(`카테고리: ${Object.keys(categories).join(", ")}`)
+      addDebugLog(`카테고리: ${Object.keys(calculatedCategories).join(", ")}`)
     } catch (error) {
       addDebugLog(`전체 오류: ${error}`)
       console.error("Error in fetchSolvedChallenges:", error)
@@ -717,8 +639,9 @@ export default function MyPage() {
           // 해결한 문제 불러오기
           await fetchSolvedChallenges(userSnap.id, normalizedProfile)
 
-          // 커리큘럼 진도 불러오기
-          // await fetchCurriculumProgress(userSnap.id)
+
+          
+
         } else {
           addDebugLog("사용자 프로필이 존재하지 않음")
           toast({
@@ -758,7 +681,7 @@ export default function MyPage() {
 
     try {
       await fetchSolvedChallenges(user.uid, profile)
-      // await fetchCurriculumProgress(user.uid)
+
       toast({
         title: "데이터 새로고침 완료",
         description: "최신 활동 기록을 불러왔습니다.",
@@ -1255,13 +1178,8 @@ export default function MyPage() {
                       >
                         프로필
                       </TabsTrigger>
-                      <TabsTrigger
-                        value="curriculum"
-                        className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
-                      >
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        커리큘럼 ({curriculumProgress.length})
-                      </TabsTrigger>
+
+
                       <TabsTrigger
                         value="solved"
                         className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
@@ -1274,6 +1192,7 @@ export default function MyPage() {
                       >
                         통계
                       </TabsTrigger>
+
                       {isCurrentUserAdmin && (
                         <TabsTrigger
                           value="debug"
@@ -1382,125 +1301,9 @@ export default function MyPage() {
                       </Card>
                     </TabsContent>
 
-                    {/* 커리큘럼 탭 */}
-                    <TabsContent value="curriculum">
-                      <Card className="backdrop-blur-sm bg-card/80 border-primary/10 shadow-lg overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-background/0 pointer-events-none" />
-                        <CardHeader className="relative z-10">
-                          <CardTitle className="flex items-center gap-2">
-                            <BookOpen className="h-5 w-5 text-primary" />
-                            커리큘럼 진도 ({curriculumProgress.length})
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="relative z-10">
-                          {curriculumProgress.length === 0 ? (
-                            <motion.div
-                              className="flex flex-col items-center justify-center py-8 text-center"
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.5 }}
-                            >
-                              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                              <h3 className="text-xl font-bold">진행 중인 커리큘럼이 없습니다</h3>
-                              <p className="text-muted-foreground mt-2">커리큘럼을 시작해서 체계적으로 학습해보세요.</p>
-                              <Link href="/curriculum">
-                                <Button className="mt-4">
-                                  <Target className="mr-2 h-4 w-4" />
-                                  커리큘럼 둘러보기
-                                </Button>
-                              </Link>
-                            </motion.div>
-                          ) : (
-                            <div className="space-y-4">
-                              {curriculumProgress.map((curriculum, index) => (
-                                <motion.div
-                                  key={curriculum.id}
-                                  className="rounded-lg border p-4 bg-card/50 hover:bg-card/80 transition-colors"
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                                  whileHover={{
-                                    scale: 1.01,
-                                    boxShadow: "0 10px 30px -15px rgba(0, 0, 0, 0.3)",
-                                  }}
-                                >
-                                  <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="flex items-center gap-1">
-                                        {categoryIcons[curriculum.category] || <BookOpen className="h-3.5 w-3.5" />}
-                                        <span>{curriculum.category}</span>
-                                      </Badge>
-                                      {curriculum.isCompleted && (
-                                        <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
-                                          <Award className="mr-1 h-3 w-3" />
-                                          완료
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <div className="text-right">
-                                      <span className="text-sm font-medium">
-                                        {curriculum.completedSteps}/{curriculum.totalSteps} 단계
-                                      </span>
-                                    </div>
-                                  </div>
 
-                                  <h3 className="text-lg font-bold mb-2">{curriculum.title}</h3>
 
-                                  <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                      <span className="text-muted-foreground">진도율</span>
-                                      <span className="font-medium">{Math.round(curriculum.progress)}%</span>
-                                    </div>
-                                    <div className="relative">
-                                      <Progress value={curriculum.progress} className="h-2" />
-                                      <motion.div
-                                        className="absolute top-0 left-0 h-full bg-primary/30 rounded-full"
-                                        initial={{ width: "0%" }}
-                                        animate={{
-                                          width: `${curriculum.progress}%`,
-                                          transition: { duration: 1, ease: "easeOut", delay: index * 0.1 },
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
 
-                                  <div className="mt-3 flex items-center justify-between">
-                                    <div className="text-xs text-muted-foreground">
-                                      마지막 학습: {formatRelativeTime(getTimestampDate(curriculum.lastAccessed))}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      {curriculum.certificate && (
-                                        <Badge variant="outline" className="text-yellow-500 border-yellow-500/30">
-                                          <GraduationCap className="mr-1 h-3 w-3" />
-                                          수료증
-                                        </Badge>
-                                      )}
-                                      <Link href={`/curriculum/${curriculum.id}`}>
-                                        <Button size="sm" variant="outline">
-                                          {curriculum.isCompleted ? "복습하기" : "계속 학습"}
-                                          <ChevronRight className="ml-1 h-3 w-3" />
-                                        </Button>
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              ))}
-                            </div>
-                          )}
-                        </CardContent>
-                        <CardFooter className="relative z-10">
-                          <Link href="/curriculum" className="w-full">
-                            <Button
-                              variant="outline"
-                              className="w-full group hover:bg-primary hover:text-primary-foreground transition-all duration-300 bg-transparent"
-                            >
-                              <Zap className="mr-2 h-4 w-4" />새 커리큘럼 시작하기
-                              <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                            </Button>
-                          </Link>
-                        </CardFooter>
-                      </Card>
-                    </TabsContent>
 
                     <TabsContent value="solved">
                       <Card className="backdrop-blur-sm bg-card/80 border-primary/10 shadow-lg overflow-hidden">
@@ -1894,7 +1697,7 @@ export default function MyPage() {
                                     <p>총 해결 문제: {solvedChallenges.length}개</p>
                                     <p>워게임: {wargameCount}개</p>
                                     <p>CTF: {ctfCount}개</p>
-                                    <p>커리큘럼 진도: {curriculumProgress.length}개</p>
+
                                     <p>프로필 존재: {profile ? "예" : "아니오"}</p>
                                     <p>프로필 점수: {profile?.points || 0}</p>
                                   </div>

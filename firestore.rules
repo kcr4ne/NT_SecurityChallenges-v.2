@@ -49,6 +49,11 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
     
+    // User Curriculum Progress
+    match /user_curriculum_progress/{progressId} {
+      allow read, write: if isAuthenticated() && (resource == null || request.auth.uid == resource.data.userId || request.resource.data.userId == request.auth.uid);
+    }
+    
     // Other collections (default deny)
     match /{document=**} {
       allow read, write: if false;

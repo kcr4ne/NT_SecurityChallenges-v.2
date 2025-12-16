@@ -143,7 +143,7 @@ export function Navbar() {
       gradient: "from-purple-400 to-pink-600",
       items: [
         { title: "전체 게시글", href: "/community", description: "모든 커뮤니티 게시글" },
-        { title: "내 게시글", href: "/mypage", description: "작성한 게시글 확인" },
+
         { title: "인기 게시글", href: "/community", description: "인기있는 게시글" },
         { title: "글 작성하기", href: "/community", description: "새 게시글 작성" },
       ],
@@ -158,7 +158,6 @@ export function Navbar() {
         { title: "전체 커리큘럼", href: "/curriculum", description: "모든 학습 과정" },
         { title: "내 진도", href: "/mypage", description: "학습 진행 상황" },
         { title: "추천 과정", href: "/curriculum", description: "맞춤형 학습 과정" },
-        { title: "수료증", href: "/mypage", description: "완료한 과정 확인" },
       ],
     },
   ]

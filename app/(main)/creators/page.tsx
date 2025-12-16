@@ -54,8 +54,8 @@ const developers = [
     bgGradient: "from-blue-500/10 via-cyan-500/10 to-teal-500/10",
     icon: <Server className="h-6 w-6" />,
     delay: 0.1,
-    github: "https://github.com/woochul",
-    email: "woochul@example.com",
+    github: "https://github.com/NiceTop1027",
+    email: "mistarcodm@gmail.com",
     projects: 8,
     commits: 420,
     ctfProblems: 0,
@@ -78,8 +78,8 @@ const developers = [
     bgGradient: "from-purple-500/10 via-pink-500/10 to-rose-500/10",
     icon: <Monitor className="h-6 w-6" />,
     delay: 0.2,
-    github: "https://github.com/dohyun",
-    email: "dohyun@example.com",
+    github: "https://github.com/kcr4ne",
+    email: "kylecr4ne@gmail.com",
     projects: 10,
     commits: 380,
     ctfProblems: 0,
@@ -102,8 +102,8 @@ const developers = [
     bgGradient: "from-red-500/10 via-orange-500/10 to-yellow-500/10",
     icon: <Shield className="h-6 w-6" />,
     delay: 0.3,
-    github: "https://github.com/abdullah",
-    email: "abdullah@example.com",
+    github: "https://github.com/dkq-k",
+    email: "ab1315271@gmail.com",
     projects: 6,
     commits: 290,
     ctfProblems: 0,
@@ -126,8 +126,8 @@ const developers = [
     bgGradient: "from-green-500/10 via-emerald-500/10 to-teal-500/10",
     icon: <Globe className="h-6 w-6" />,
     delay: 0.4,
-    github: "https://github.com/gyojun",
-    email: "gyojun@example.com",
+    github: "https://github.com/Kyojun1234",
+    email: "kyojunpob@gmail.com",
     projects: 7,
     commits: 310,
     ctfProblems: 0,
@@ -164,6 +164,12 @@ interface TeamStats {
   platformAge: number
 }
 
+interface GithubStats {
+  [key: string]: {
+    repos: number
+  }
+}
+
 export default function CreatorsPage() {
   const [teamStats, setTeamStats] = useState<TeamStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -174,7 +180,9 @@ export default function CreatorsPage() {
   const y = useTransform(scrollYProgress, [0, 1], [0, -50])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
-  // Firebase에서 실제 통계 데이터 가져오기
+  const [githubStats, setGithubStats] = useState<GithubStats>({})
+
+  // GitHub 통계 및 Firebase 데이터 가져오기
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -241,6 +249,29 @@ export default function CreatorsPage() {
             developers[abdullahIndex].ctfProblems = ctfProblems
           }
         }
+
+        // GitHub 데이터 가져오기
+        const ghStats: GithubStats = {}
+        await Promise.all(
+          developers.map(async (dev) => {
+            try {
+              if (!dev.github) return
+              const username = dev.github.split("/").pop()
+              if (!username) return
+
+              const response = await fetch(`https://api.github.com/users/${username}`)
+              if (response.ok) {
+                const data = await response.json()
+                ghStats[dev.name] = {
+                  repos: data.public_repos,
+                }
+              }
+            } catch (error) {
+              console.error(`Error fetching GitHub stats for ${dev.name}:`, error)
+            }
+          }),
+        )
+        setGithubStats(ghStats)
       } catch (error) {
         console.error("데이터 로딩 오류:", error)
       } finally {
@@ -547,12 +578,16 @@ export default function CreatorsPage() {
                           {/* 통계 */}
                           <div className="flex gap-4 text-center">
                             <div>
-                              <div className="text-lg font-bold text-primary">{developer.projects}</div>
-                              <div className="text-xs text-muted-foreground">Projects</div>
+                              <div className="text-lg font-bold text-primary">
+                                {githubStats[developer.name]?.repos !== undefined
+                                  ? githubStats[developer.name].repos
+                                  : developer.projects}
+                              </div>
+                              <div className="text-xs text-muted-foreground">프로젝트</div>
                             </div>
                             <div>
-                              <div className="text-lg font-bold text-primary">{developer.commits}</div>
-                              <div className="text-xs text-muted-foreground">Commits</div>
+                              <div className="text-lg font-bold text-primary">NiceTop</div>
+                              <div className="text-xs text-muted-foreground">소속</div>
                             </div>
                           </div>
                         </div>

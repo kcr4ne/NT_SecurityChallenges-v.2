@@ -43,7 +43,7 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [passwordError, setPasswordError] = useState("")
   const [passwordVerified, setPasswordVerified] = useState(false)
-  const [isCompleting, setIsCompleting] = useState(false)
+
   const [isNavigating, setIsNavigating] = useState(false)
   const [showSidebar, setShowSidebar] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -57,15 +57,17 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
   const stepIndex = Number.parseInt(stepIndexStr)
 
   // 진행률 계산
-  const completedSteps = userProgress?.completedSteps?.length || 0
+  const completedSteps = new Set(userProgress?.completedSteps || []).size
   const totalSteps = curriculum?.steps?.length || 0
   const progressPercentage = totalSteps > 0 ? Math.min((completedSteps / totalSteps) * 100, 100) : 0
 
   // 현재 단계가 완료되었는지 확인
-  const isStepCompleted = userProgress?.completedSteps?.includes(stepIndex.toString()) || false
+  const currentStepId = curriculum?.steps?.[stepIndex]?.id
+  const isStepCompleted = currentStepId && userProgress?.completedSteps ? userProgress.completedSteps.includes(currentStepId) : false
 
   // 데이터 가져오기
   const fetchData = async () => {
+
     try {
       setIsLoading(true)
       setError("")
@@ -85,7 +87,11 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
         return
       }
 
-      const steps = curriculumData.steps || []
+      const steps = (curriculumData.steps || []).map((step: any, index: number) => ({
+        ...step,
+        id: step.id || `step_${index}`
+      }))
+      
       const curriculum: Curriculum = {
         categories: [], // Default
         estimatedDuration: 0, // Default
@@ -146,6 +152,7 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
               progress: progressData.progress || 0,
             })
           } else {
+
             // 진행 상황이 없으면 새로 생성
             const now = new Date()
             const newProgress = {
@@ -170,6 +177,8 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
             currentStep: stepIndex,
             lastAccessedAt: serverTimestamp(),
           })
+
+
         } catch (progressError) {
           console.error("Error fetching/updating progress:", progressError)
         }
@@ -265,82 +274,60 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
     }
   }
 
-  // 단계 완료 처리
-  const completeStep = async () => {
-    if (!user?.uid || !curriculum) return
 
-    try {
-      setIsCompleting(true)
-      const progressRef = doc(db, "user_curriculum_progress", `${user.uid}_${id}`)
-      const progressSnap = await getDoc(progressRef)
-
-      if (progressSnap.exists()) {
-        const progressData = progressSnap.data()
-        const completedSteps = progressData.completedSteps || []
-
-        if (!completedSteps.includes(stepIndex.toString())) {
-          // 완료된 단계 배열에 현재 단계 추가
-          await updateDoc(progressRef, {
-            completedSteps: arrayUnion(stepIndex.toString()),
-            lastAccessedAt: serverTimestamp(),
-          })
-
-          // 모든 단계가 완료되었는지 확인
-          const updatedCompletedSteps = [...completedSteps, stepIndex.toString()]
-          const allCompleted = curriculum.steps?.length === updatedCompletedSteps.length
-
-          if (allCompleted) {
-            await updateDoc(progressRef, {
-              completedAt: serverTimestamp(),
-            })
-
-            toast({
-              title: "축하합니다!",
-              description: "모든 단계를 완료했습니다.",
-            })
-          } else {
-            toast({
-              title: "단계 완료",
-              description: "이 단계를 성공적으로 완료했습니다.",
-            })
-          }
-
-          // 진행 상황 업데이트
-          setUserProgress({
-            ...userProgress!,
-            completedSteps: [...(userProgress?.completedSteps || []), stepIndex.toString()],
-          })
-        }
-      }
-    } catch (error: any) {
-      console.error("Error completing step:", error)
-      toast({
-        title: "오류 발생",
-        description: "단계 완료 처리 중 오류가 발생했습니다.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsCompleting(false)
-    }
-  }
 
   // 다음 단계로 이동
   const goToNextStep = async () => {
     if (!curriculum) return
-    if (stepIndex < curriculum.steps!.length - 1) {
-      setIsNavigating(true)
+    setIsNavigating(true)
+
+    // 1. 현재 단계 완료 처리
+    if (user?.uid) {
       try {
-        await router.push(`/curriculum/${id}/step/${stepIndex + 1}`)
-      } catch (e) {
-        console.error("Navigation error:", e)
-        toast({
-          title: "탐색 오류",
-          description: "다음 단계로 이동하는 데 실패했습니다.",
-          variant: "destructive",
+        const progressRef = doc(db, "user_curriculum_progress", `${user.uid}_${id}`)
+        
+        // 현재 단계 ID를 저장
+        const stepId = curriculum.steps![stepIndex].id
+        
+        await setDoc(progressRef, {
+          completedSteps: arrayUnion(stepId),
+          lastAccessedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          userId: user.uid,
+          curriculumId: id,
+        }, { merge: true })
+        
+        // 로컬 상태 업데이트
+        setUserProgress((prev) => {
+          if (!prev) return null
+          const completed = new Set(prev.completedSteps || [])
+          completed.add(stepId)
+          return {
+            ...prev,
+            completedSteps: Array.from(completed)
+          }
         })
-      } finally {
-        setIsNavigating(false)
+
+      } catch (e) {
+        console.error("Progress update error:", e)
       }
+    }
+
+    // 2. 페이지 이동
+    try {
+      if (stepIndex < curriculum.steps!.length - 1) {
+        await router.push(`/curriculum/${id}/step/${stepIndex + 1}`)
+      } else {
+        toast({
+          title: "커리큘럼 완료!",
+          description: "모든 단계를 완료했습니다.",
+        })
+        await router.push(`/curriculum/${id}`)
+      }
+    } catch (e) {
+      console.error("Navigation error:", e)
+    } finally {
+      setIsNavigating(false)
     }
   }
 
@@ -620,10 +607,10 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
                       variant="outline"
                       size="sm"
                       onClick={goToNextStep}
-                      disabled={stepIndex === (curriculum.steps?.length || 0) - 1 || isNavigating}
+                      disabled={isNavigating}
                       className="border-gray-700 text-gray-300 hover:bg-gray-800 disabled:opacity-50 bg-transparent"
                     >
-                      다음
+                      {stepIndex === (curriculum.steps?.length || 0) - 1 ? "완료" : "다음"}
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                   </div>
@@ -643,24 +630,11 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
                         <SheetTitle className="text-white">커리큘럼 목차</SheetTitle>
                       </SheetHeader>
                       <div className="mt-6 space-y-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-200">진행률</span>
-                          <span className="text-sm text-gray-400">
-                            {completedSteps} / {totalSteps} 완료
-                          </span>
-                        </div>
 
-                        {/* 진행률 표시 */}
-                        <div className="relative h-2 w-full bg-gray-800 rounded-full overflow-hidden">
-                          <div
-                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-1000 ease-out"
-                            style={{ width: `${progressPercentage}%` }}
-                          />
-                        </div>
 
                         <div className="mt-6 space-y-2">
                           {curriculum.steps?.map((step, index) => {
-                            const isCompleted = userProgress?.completedSteps?.includes(index.toString()) || false
+                            const isCompleted = userProgress?.completedSteps?.includes(step.id) || false
                             const isCurrent = index === stepIndex
 
                             return (
@@ -696,17 +670,7 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
 
-          {/* 진행률 표시 */}
-          <div className="bg-black border-b border-gray-800">
-            <div className="container mx-auto px-4 md:px-6">
-              <div className="relative h-1 w-full bg-gray-800 overflow-hidden">
-                <div
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-            </div>
-          </div>
+
 
           {/* 메인 콘텐츠 */}
           <div className="container mx-auto px-4 md:px-6 py-8">
@@ -723,12 +687,7 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
                       {currentStep.duration}
                     </div>
                   )}
-                  {isStepCompleted && (
-                    <Badge className="bg-green-900/50 text-green-300 border-green-700">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      완료됨
-                    </Badge>
-                  )}
+
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-4">{currentStep.title}</h2>
                 <p className="text-gray-400">{currentStep.description}</p>
@@ -750,30 +709,14 @@ export default function CurriculumStepPage({ params }: { params: Promise<{ id: s
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   이전 단계
                 </Button>
-                <Button
-                  onClick={completeStep}
-                  disabled={isCompleting || isStepCompleted}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 shadow-lg transition-all duration-300 hover:scale-105"
-                >
-                  {isCompleting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      완료 중...
-                    </>
-                  ) : (
-                    <>
-                      단계 완료
-                      <CheckCircle className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
+
                 <Button
                   variant="outline"
                   onClick={goToNextStep}
-                  disabled={stepIndex === (curriculum.steps?.length || 0) - 1 || isNavigating}
+                  disabled={isNavigating}
                   className="border-gray-700 text-gray-300 hover:bg-gray-800 disabled:opacity-50 bg-transparent"
                 >
-                  다음 단계
+                  {stepIndex === (curriculum.steps?.length || 0) - 1 ? "완료" : "다음 단계"}
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>

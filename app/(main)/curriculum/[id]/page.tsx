@@ -151,55 +151,7 @@ export default function CurriculumDetailPage({ params }: { params: Promise<{ id:
     }
   }
 
-  // 단계 완료 처리
-  const completeStep = async (stepId: string) => {
-    if (!user?.uid || !curriculum) return
 
-    try {
-      const progressRef = doc(db, "user_curriculum_progress", `${user.uid}_${id}`)
-
-      await setDoc(
-        progressRef,
-        {
-          userId: user.uid,
-          curriculumId: id,
-          completedSteps: arrayUnion(stepId),
-          lastAccessedAt: new Date(),
-          updatedAt: new Date(),
-        },
-        { merge: true },
-      )
-
-      // 로컬 상태 업데이트
-      setCurriculum((prev) => {
-        if (!prev) return null
-
-        const updatedSteps = prev.steps.map((step) => (step.id === stepId ? { ...step, isCompleted: true } : step))
-
-        const completedSteps = updatedSteps.filter((step) => step.isCompleted).length
-        const progress = (completedSteps / updatedSteps.length) * 100
-
-        return {
-          ...prev,
-          steps: updatedSteps,
-          completedSteps,
-          progress,
-        }
-      })
-
-      toast({
-        title: "단계 완료!",
-        description: "이 단계를 성공적으로 완료했습니다.",
-      })
-    } catch (error: any) {
-      console.error("Error completing step:", error)
-      toast({
-        title: "오류",
-        description: "단계 완료 처리 중 오류가 발생했습니다.",
-        variant: "destructive",
-      })
-    }
-  }
 
   // 다음 단계로 이동
   const goToNextStep = () => {
@@ -430,20 +382,7 @@ export default function CurriculumDetailPage({ params }: { params: Promise<{ id:
                       </div>
                     </div>
 
-                    {/* 진행률 */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">진행률</span>
-                        <span className="text-white font-medium">{Math.round(curriculum.progress)}%</span>
-                      </div>
-                      <Progress value={curriculum.progress} className="h-2" />
-                      <div className="flex items-center justify-between text-sm text-gray-400">
-                        <span>
-                          {curriculum.completedSteps}/{curriculum.totalSteps} 단계 완료
-                        </span>
-                        <span>예상 시간: {curriculum.estimatedTime}분</span>
-                      </div>
-                    </div>
+
                   </CardHeader>
                 </Card>
               </motion.div>
@@ -469,7 +408,7 @@ export default function CurriculumDetailPage({ params }: { params: Promise<{ id:
                           </div>
                           <div className="flex items-center gap-2 text-gray-400">
                             <Clock className="h-4 w-4" />
-                            <span className="text-sm">{currentStepData.duration}분</span>
+                            <span className="text-sm">{String(currentStepData.duration).replace('분', '')}분</span>
                           </div>
                         </div>
                         {currentStepData.isCompleted && (
@@ -527,16 +466,6 @@ export default function CurriculumDetailPage({ params }: { params: Promise<{ id:
                         </Button>
 
                         <div className="flex items-center gap-3">
-                          {!currentStepData.isCompleted && (
-                            <Button
-                              onClick={() => completeStep(currentStepData.id)}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              단계 완료
-                            </Button>
-                          )}
-
                           <Button
                             onClick={goToNextStep}
                             disabled={currentStep === curriculum.steps.length - 1}
@@ -652,9 +581,9 @@ export default function CurriculumDetailPage({ params }: { params: Promise<{ id:
                             }`}
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
                               <div
-                                className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${step.isCompleted
+                                className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium flex-shrink-0 ${step.isCompleted
                                   ? "bg-green-500 text-white"
                                   : index === currentStep
                                     ? "bg-blue-500 text-white"
@@ -663,19 +592,19 @@ export default function CurriculumDetailPage({ params }: { params: Promise<{ id:
                               >
                                 {step.isCompleted ? <CheckCircle className="h-3 w-3" /> : index + 1}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
                                 {getStepIcon(step.type)}
                                 <span
-                                  className={`text-sm font-medium ${index === currentStep ? "text-white" : "text-gray-300"
+                                  className={`text-sm font-medium truncate ${index === currentStep ? "text-white" : "text-gray-300"
                                     }`}
                                 >
                                   {step.title}
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <div className="flex items-center gap-2 text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
                               <Clock className="h-3 w-3" />
-                              <span>{step.duration}분</span>
+                              <span>{String(step.duration).replace('분', '')}분</span>
                             </div>
                           </div>
                         </button>
